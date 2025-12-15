@@ -4,6 +4,7 @@
  * @type {import('expo/metro-config')}
  */
 const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require("nativewind/metro");
 const path = require("node:path");
 
 // biome-ignore lint/correctness/noGlobalDirnameFilename: CommonJS file requires __dirname, not import.meta.dirname
@@ -26,4 +27,4 @@ config.transformer.getTransformOptions = async () => ({
   },
 });
 
-module.exports = config;
+module.exports = withNativeWind(config, { input: "./global.css" });
