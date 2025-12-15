@@ -21,7 +21,9 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "app/*": ["../../packages/app/*"]
+      "app/*": ["../../packages/app/*"],
+      "ui-web": ["../../packages/ui-web/src"],
+      "ui-web/*": ["../../packages/ui-web/src/*"]
     },
     "strictNullChecks": true
   },
