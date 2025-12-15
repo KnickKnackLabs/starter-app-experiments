@@ -6,6 +6,7 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("node:path");
 
+// biome-ignore lint/correctness/noGlobalDirnameFilename: CommonJS file requires __dirname, not import.meta.dirname
 const projectRoot = __dirname;
 const workspaceRoot = path.resolve(projectRoot, "../..");
 

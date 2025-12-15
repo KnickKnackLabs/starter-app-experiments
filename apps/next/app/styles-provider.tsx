@@ -8,6 +8,7 @@ export function StylesProvider({ children }: { children: React.ReactNode }) {
     const sheet = StyleSheet.getSheet();
     return (
       <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Required for react-native-web SSR styles
         dangerouslySetInnerHTML={{ __html: sheet.textContent }}
         id={sheet.id}
       />
