@@ -1,13 +1,17 @@
 {
   "expo": {
-    "name": "solito-blank",
-    "slug": "solito-blank",
+    "name": "Starter App",
+    "slug": "starter-app",
     "version": "1.0.0",
-    "scheme": "solito-blank",
+    "scheme": "starter-app",
     "platforms": ["ios", "android"],
     "ios": {
-      "bundleIdentifier": "com.solito.blank"
+      "bundleIdentifier": "com.starter.app"
     },
+    "android": {
+      "package": "com.starter.app"
+    },
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "experiments": {
       "reactCanary": true
