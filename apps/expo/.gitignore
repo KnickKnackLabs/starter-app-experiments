@@ -123,3 +123,7 @@ web-build/
 dist/
 
 # @end expo-cli
+# Storybook
+*storybook.log
+storybook-static
+.rnstorybook/storybook.requires.ts

@@ -5,7 +5,13 @@
  */
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
+const {
+  withStorybook,
+} = require("@storybook/react-native/metro/withStorybook");
 const path = require("node:path");
+
+// Only enable Storybook when explicitly requested via env var
+const STORYBOOK_ENABLED = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === "true";
 
 // biome-ignore lint/correctness/noGlobalDirnameFilename: CommonJS file requires __dirname, not import.meta.dirname
 const projectRoot = __dirname;
@@ -27,7 +33,14 @@ config.transformer.getTransformOptions = async () => ({
   },
 });
 
-module.exports = withNativeWind(config, {
+const nativeWindConfig = withNativeWind(config, {
   input: "./global.css",
   inlineRem: 16,
+});
+
+// Always apply withStorybook, but with enabled option
+// When enabled: false, it stubs out Storybook files (no bundling overhead)
+// See: https://github.com/storybookjs/react-native/discussions/535
+module.exports = withStorybook(nativeWindConfig, {
+  enabled: STORYBOOK_ENABLED,
 });

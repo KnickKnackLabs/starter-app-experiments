@@ -10,6 +10,7 @@
   "scripts": {
     "fix": "biome check --write .",
     "native": "pnpm --filter expo-app run start",
+    "native:storybook": "pnpm --filter expo-app run storybook",
     "storybook": "pnpm --filter storybook run storybook",
     "web": "pnpm --filter web-app run dev"
   },

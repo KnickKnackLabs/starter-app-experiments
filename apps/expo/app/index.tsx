@@ -1,15 +1,22 @@
+import { Redirect } from "expo-router";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
+import { STORYBOOK_ENABLED } from "./_layout";
 
-export function HomeScreen() {
+export default function HomeScreen() {
+  // When Storybook mode is enabled, redirect to Storybook UI
+  if (__DEV__ && STORYBOOK_ENABLED) {
+    return <Redirect href="/storybook" />;
+  }
+
   return (
-    <View className="flex-1 items-center justify-center gap-8 bg-background p-4">
+    <View className="flex-1 flex-col items-center justify-center gap-8 bg-background p-4">
       <Text variant="h3">React Native Reusables Test</Text>
       <Text className="text-muted-foreground">
         If you see styled buttons below, the setup is working!
       </Text>
-      <View className="gap-4">
+      <View className="flex-col gap-4">
         <Button>
           <Text>Default</Text>
         </Button>
