@@ -1,6 +1,11 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "app/*": ["../../packages/app/*"],
+      "@/*": ["./*"]
+    }
   }
 }

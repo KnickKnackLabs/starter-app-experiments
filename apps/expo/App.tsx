@@ -1,13 +1,16 @@
 import "./global.css";
 import { PortalHost } from "@rn-primitives/portal";
-import { NativeNavigation } from "app/navigation/native";
-import { Provider } from "app/provider";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ThemeProvider } from "@/components/theme-provider";
+import { HomeScreen } from "@/screens/home";
 
 export default function App() {
   return (
-    <Provider>
-      <NativeNavigation />
-      <PortalHost />
-    </Provider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <HomeScreen />
+        <PortalHost />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
