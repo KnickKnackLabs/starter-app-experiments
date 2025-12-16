@@ -6,7 +6,7 @@ This is the Storybook instance for **web components** (`packages/ui-web`).
 
 ```bash
 # From the monorepo root
-pnpm --filter storybook storybook
+pnpm web:storybook
 
 # Or from this directory
 pnpm storybook
@@ -30,7 +30,7 @@ This monorepo has two separate UI component systems:
 - **Location**: `apps/expo/components/ui`
 - **Framework**: React Native + NativeWind v4 + React Native Reusables
 - **Used by**: Expo app
-- **Storybook**: Integrated into `apps/expo` (toggle via environment variable, not yet set up)
+- **Storybook**: Run `pnpm native:storybook` from monorepo root
 
 ## Adding Stories
 

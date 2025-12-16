@@ -2,10 +2,10 @@
   "compilerOptions": {
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
-    "paths": {
-      "app/*": ["./packages/app/*"]
-    },
     "baseUrl": ".",
+    "paths": {
+      "@core/*": ["./packages/core/src/*"]
+    },
     "jsx": "react-jsx"
   },
   "extends": "expo/tsconfig.base"

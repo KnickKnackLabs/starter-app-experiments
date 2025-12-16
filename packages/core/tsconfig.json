@@ -3,9 +3,7 @@
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
-    "paths": {
-      "@core/*": ["../../packages/core/src/*"],
-      "@/*": ["./*"]
-    }
-  }
+    "paths": {}
+  },
+  "include": ["src"]
 }

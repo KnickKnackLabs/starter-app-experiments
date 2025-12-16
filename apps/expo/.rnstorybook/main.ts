@@ -6,6 +6,9 @@ const main: StorybookConfig = {
     "@storybook/addon-ondevice-controls",
     "@storybook/addon-ondevice-actions",
   ],
+  core: {
+    disableTelemetry: true,
+  },
 };
 
 export default main;

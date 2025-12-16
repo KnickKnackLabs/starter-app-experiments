@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@progalert/core": "workspace:*",
     "@gorhom/bottom-sheet": "^5.2.8",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "^8.4.4",

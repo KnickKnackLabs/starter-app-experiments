@@ -9,6 +9,7 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
+      "@core/*": ["../../packages/core/src/*"],
       "@ui/*": ["../../packages/ui-web/src/*"],
       "@/*": ["./src/*"]
     }
