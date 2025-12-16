@@ -1,5 +1,5 @@
 {
-  "name": "@progalert/core",
+  "name": "@starter/core",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",

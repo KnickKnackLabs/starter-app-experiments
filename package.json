@@ -1,5 +1,5 @@
 {
-  "name": "progalert",
+  "name": "starter",
   "private": true,
   "devDependencies": {
     "@biomejs/biome": "2.3.8",

@@ -1,4 +1,4 @@
-# Progalert
+# Starter
 
 A monorepo starter with:
 
