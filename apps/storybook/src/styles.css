@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "../../../packages/ui-web/src/styles/theme.css";
+
+/* Include ui-web package for class scanning */
+@source "../../../packages/ui-web/src";

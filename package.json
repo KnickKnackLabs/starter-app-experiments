@@ -11,6 +11,7 @@
   "scripts": {
     "fix": "biome check --write .",
     "native": "pnpm --filter expo-app run start",
+    "storybook": "pnpm --filter storybook run storybook",
     "web": "pnpm --filter next-app run dev"
   },
   "packageManager": "pnpm@9.15.9"
