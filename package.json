@@ -4,7 +4,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
     "@types/react": "^19.1.0",
-    "turbo": "^2.4.4",
     "typescript": "^5.2.2",
     "ultracite": "6.4.0"
   },
@@ -12,7 +11,13 @@
     "fix": "biome check --write .",
     "native": "pnpm --filter expo-app run start",
     "storybook": "pnpm --filter storybook run storybook",
-    "web": "pnpm --filter next-app run dev"
+    "web": "pnpm --filter web-app run dev"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
+    }
   },
   "packageManager": "pnpm@9.15.9"
 }

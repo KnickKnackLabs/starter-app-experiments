@@ -1,11 +1,9 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "../../../packages/ui-web/src/styles/theme.css";
+@import "../../../../packages/ui-web/src/styles/theme.css";
 
 /* Include ui-web package for class scanning */
-@source "../../../packages/ui-web/src";
+@source "../../../../packages/ui-web/src";
 
-/* Next.js specific base styles */
 @layer base {
   html {
     scroll-behavior: smooth;

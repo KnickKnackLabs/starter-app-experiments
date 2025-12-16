@@ -22,7 +22,7 @@ This monorepo has two separate UI component systems:
 
 - **Location**: `packages/ui-web`
 - **Framework**: React + Tailwind CSS v4 + Shadcn
-- **Used by**: Next.js app, future Electron app
+- **Used by**: TanStack Start web app, future Electron app
 - **Storybook**: `apps/storybook` (this app)
 
 ### Native Components
@@ -51,4 +51,4 @@ This Storybook is configured with:
 - Shared theme from `packages/ui-web/src/styles/theme.css` (single source of truth)
 - `@source` directive scanning `packages/ui-web/src` for classes
 
-The theme variables (Shadcn's OKLCH color system) are defined once in `packages/ui-web` and imported by both `apps/next` and `apps/storybook`.
+The theme variables (Shadcn's OKLCH color system) are defined once in `packages/ui-web` and imported by both `apps/web` and `apps/storybook`.
