@@ -1,15 +1,26 @@
 /// <reference types="vite/client" />
 
+import { isRtl, type SupportedLanguage } from "@starter/core/i18n";
 import {
   createRootRoute,
   HeadContent,
   Outlet,
   Scripts,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
+import { I18nextProvider, useTranslation } from "react-i18next";
+import { LanguagePicker } from "../components/language-picker";
+import { initI18n } from "../i18n";
+import { getLanguageFromCookie } from "../server/get-language";
 import appCss from "../styles/globals.css?url";
 
 export const Route = createRootRoute({
+  beforeLoad: async () => {
+    const language = await getLanguageFromCookie();
+    // Initialize i18next with server-detected language BEFORE rendering
+    initI18n(language);
+    return { language };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -26,16 +37,49 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const { language: serverLanguage } = Route.useRouteContext();
+  const i18nInstance = initI18n(serverLanguage);
+
   return (
-    <RootDocument>
+    <I18nextProvider i18n={i18nInstance}>
+      <RootContent serverLanguage={serverLanguage} />
+    </I18nextProvider>
+  );
+}
+
+function RootContent({
+  serverLanguage,
+}: {
+  serverLanguage: SupportedLanguage;
+}) {
+  const { i18n } = useTranslation();
+
+  // Update document direction and lang when language changes
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+    document.documentElement.dir = isRtl(i18n.language) ? "rtl" : "ltr";
+  }, [i18n.language]);
+
+  return (
+    <RootDocument language={serverLanguage}>
+      <header className="fixed end-0 top-0 p-4">
+        <LanguagePicker />
+      </header>
       <Outlet />
     </RootDocument>
   );
 }
 
-function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+function RootDocument({
+  children,
+  language,
+}: Readonly<{ children: ReactNode; language: SupportedLanguage }>) {
   return (
-    <html lang="en">
+    <html
+      dir={isRtl(language) ? "rtl" : "ltr"}
+      lang={language}
+      suppressHydrationWarning
+    >
       <head>
         <HeadContent />
       </head>

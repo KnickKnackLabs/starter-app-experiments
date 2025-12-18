@@ -6,8 +6,13 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./i18n": "./src/i18n/index.ts",
+    "./locales/*": "./locales/*.ts",
     "./schemas/*": "./src/schemas/*.ts",
     "./types/*": "./src/types/*.ts"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "dependencies": {
+    "i18next": "^25.7.3"
+  }
 }
