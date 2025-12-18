@@ -1,38 +1,29 @@
+import { isRtl } from "@starter/core/i18n";
 import { Redirect } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
-import { Button } from "@/components/ui/button";
+import { LanguagePicker } from "@/components/language-picker";
 import { Text } from "@/components/ui/text";
 import { STORYBOOK_ENABLED } from "./_layout";
 
 export default function HomeScreen() {
+  const { t, i18n } = useTranslation();
+  const rtl = isRtl(i18n.language);
+
   // When Storybook mode is enabled, redirect to Storybook UI
   if (__DEV__ && STORYBOOK_ENABLED) {
     return <Redirect href="/storybook" />;
   }
 
   return (
-    <View className="flex-1 flex-col items-center justify-center gap-8 bg-background p-4">
-      <Text variant="h3">React Native Reusables Test</Text>
-      <Text className="text-muted-foreground">
-        If you see styled buttons below, the setup is working!
-      </Text>
-      <View className="flex-col gap-4">
-        <Button>
-          <Text>Default</Text>
-        </Button>
-        <Button variant="secondary">
-          <Text>Secondary</Text>
-        </Button>
-        <Button variant="destructive">
-          <Text>Destructive</Text>
-        </Button>
-        <Button variant="outline">
-          <Text>Outline</Text>
-        </Button>
-        <Button variant="ghost">
-          <Text>Ghost</Text>
-        </Button>
+    <View className="flex-1 flex-col items-center justify-center gap-4 bg-background p-4">
+      <View className={`absolute top-12 ${rtl ? "left-4" : "right-4"}`}>
+        <LanguagePicker />
       </View>
+      <Text variant="h3">
+        {t("home.welcome", { appName: t("common.appName") })}
+      </Text>
+      <Text className="text-muted-foreground">{t("home.description")}</Text>
     </View>
   );
 }
