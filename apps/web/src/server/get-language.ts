@@ -11,12 +11,15 @@ function parseCookie(
   cookieHeader: string | null,
   name: string
 ): string | undefined {
-  if (!cookieHeader) return;
+  if (!cookieHeader) {
+    return;
+  }
   const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
   return match?.[1];
 }
 
 export const getLanguageFromCookie = createServerFn({ method: "GET" }).handler(
+  // biome-ignore lint/suspicious/useAwait: TanStack Start handlers are async by convention
   async (): Promise<SupportedLanguage> => {
     try {
       const request = getRequest();

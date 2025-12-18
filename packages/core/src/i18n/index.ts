@@ -1,3 +1,4 @@
+// biome-ignore lint/performance/noBarrelFile: This is the intentional entry point for @starter/core/i18n
 export {
   defaultLanguage,
   defaultNS,

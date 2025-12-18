@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@ui/components/ui/dropdown-menu";
 import { Languages } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const languages: Record<SupportedLanguage, { flag: string; name: string }> = {
@@ -21,23 +20,6 @@ const languages: Record<SupportedLanguage, { flag: string; name: string }> = {
 
 export function LanguagePicker() {
   const { i18n } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  // Only render on client to avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    // Return placeholder with same dimensions to prevent layout shift
-    return (
-      <Button className="gap-2" size="sm" variant="ghost">
-        <Languages className="h-4 w-4" />
-        <span className="opacity-0">🇺🇸</span>
-      </Button>
-    );
-  }
-
   const currentLang =
     languages[i18n.language as SupportedLanguage] ?? languages.en;
 

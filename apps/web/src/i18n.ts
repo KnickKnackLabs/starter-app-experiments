@@ -5,7 +5,8 @@ import {
   type SupportedLanguage,
   supportedLanguages,
 } from "@starter/core/i18n";
-import i18n, { type i18n as I18nInstance } from "i18next";
+import type { i18n as I18nInstance } from "i18next";
+import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
@@ -50,5 +51,3 @@ export function initI18n(serverLanguage?: SupportedLanguage): I18nInstance {
   initialized = true;
   return i18n;
 }
-
-export default i18n;
