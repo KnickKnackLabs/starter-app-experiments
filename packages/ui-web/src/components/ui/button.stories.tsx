@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useTranslation } from "react-i18next";
 import { Button } from "./button";
 
 const meta: Meta<typeof Button> = {
@@ -36,89 +37,178 @@ const meta: Meta<typeof Button> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// Helper component to use translations in stories
+function TranslatedButton({
+  translationKey,
+  ...props
+}: React.ComponentProps<typeof Button> & { translationKey: string }) {
+  const { t } = useTranslation();
+  return <Button {...props}>{t(translationKey)}</Button>;
+}
+
 export const Default: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="components.button.primary" />
+  ),
   args: {
-    children: "Button",
     variant: "default",
     size: "default",
   },
 };
 
 export const Destructive: Story = {
+  render: (args) => (
+    <TranslatedButton
+      {...args}
+      translationKey="components.button.destructive"
+    />
+  ),
   args: {
-    children: "Destructive",
     variant: "destructive",
   },
 };
 
 export const Outline: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="components.button.outline" />
+  ),
   args: {
-    children: "Outline",
     variant: "outline",
   },
 };
 
 export const Secondary: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="components.button.secondary" />
+  ),
   args: {
-    children: "Secondary",
     variant: "secondary",
   },
 };
 
 export const Ghost: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="components.button.ghost" />
+  ),
   args: {
-    children: "Ghost",
     variant: "ghost",
   },
 };
 
 export const Link: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="components.button.link" />
+  ),
   args: {
-    children: "Link",
     variant: "link",
   },
 };
 
-export const Small: Story = {
+export const Disabled: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="components.button.disabled" />
+  ),
   args: {
-    children: "Small",
+    disabled: true,
+  },
+};
+
+// Size variants using action translations
+export const Small: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="actions.save" />
+  ),
+  args: {
     size: "sm",
   },
 };
 
 export const Large: Story = {
+  render: (args) => (
+    <TranslatedButton {...args} translationKey="actions.submit" />
+  ),
   args: {
-    children: "Large",
     size: "lg",
   },
 };
 
-export const Disabled: Story = {
-  args: {
-    children: "Disabled",
-    disabled: true,
+// Showcase all variants with translations
+function AllVariantsStory() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-wrap gap-4">
+      <Button variant="default">{t("components.button.primary")}</Button>
+      <Button variant="secondary">{t("components.button.secondary")}</Button>
+      <Button variant="destructive">
+        {t("components.button.destructive")}
+      </Button>
+      <Button variant="outline">{t("components.button.outline")}</Button>
+      <Button variant="ghost">{t("components.button.ghost")}</Button>
+      <Button variant="link">{t("components.button.link")}</Button>
+    </div>
+  );
+}
+
+export const AllVariants: Story = {
+  render: () => <AllVariantsStory />,
+};
+
+// Showcase all sizes with action translations
+function AllSizesStory() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <Button size="sm">{t("actions.cancel")}</Button>
+      <Button size="default">{t("actions.save")}</Button>
+      <Button size="lg">{t("actions.submit")}</Button>
+    </div>
+  );
+}
+
+export const AllSizes: Story = {
+  render: () => <AllSizesStory />,
+};
+
+// Example with common action buttons
+function ActionButtonsStory() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex gap-2">
+      <Button variant="outline">{t("actions.cancel")}</Button>
+      <Button variant="default">{t("actions.save")}</Button>
+    </div>
+  );
+}
+
+export const ActionButtons: Story = {
+  render: () => <ActionButtonsStory />,
+  parameters: {
+    docs: {
+      description: {
+        story: "Common action button pattern with Cancel and Save.",
+      },
+    },
   },
 };
 
-export const AllVariants: Story = {
-  render: () => (
-    <div className="flex flex-wrap gap-4">
-      <Button variant="default">Default</Button>
-      <Button variant="secondary">Secondary</Button>
-      <Button variant="destructive">Destructive</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="link">Link</Button>
+// Delete confirmation example
+function DeleteConfirmStory() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex gap-2">
+      <Button variant="outline">{t("actions.cancel")}</Button>
+      <Button variant="destructive">{t("actions.delete")}</Button>
     </div>
-  ),
-};
+  );
+}
 
-export const AllSizes: Story = {
-  render: () => (
-    <div className="flex flex-wrap items-center gap-4">
-      <Button size="sm">Small</Button>
-      <Button size="default">Default</Button>
-      <Button size="lg">Large</Button>
-    </div>
-  ),
+export const DeleteConfirm: Story = {
+  render: () => <DeleteConfirmStory />,
+  parameters: {
+    docs: {
+      description: {
+        story: "Delete confirmation pattern with Cancel and Delete buttons.",
+      },
+    },
+  },
 };

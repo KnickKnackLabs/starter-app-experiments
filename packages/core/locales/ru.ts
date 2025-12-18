@@ -14,5 +14,19 @@ export default {
     cancel: "Отмена",
     delete: "Удалить",
     edit: "Редактировать",
+    submit: "Отправить",
+    confirm: "Подтвердить",
+    learnMore: "Подробнее",
+  },
+  components: {
+    button: {
+      primary: "Основное действие",
+      secondary: "Вторичная",
+      destructive: "Удалить элемент",
+      outline: "Контурная",
+      ghost: "Прозрачная",
+      link: "Подробности",
+      disabled: "Недоступно",
+    },
   },
 } as const;

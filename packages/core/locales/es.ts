@@ -14,5 +14,19 @@ export default {
     cancel: "Cancelar",
     delete: "Eliminar",
     edit: "Editar",
+    submit: "Enviar",
+    confirm: "Confirmar",
+    learnMore: "Más información",
+  },
+  components: {
+    button: {
+      primary: "Acción Principal",
+      secondary: "Secundario",
+      destructive: "Eliminar Elemento",
+      outline: "Contorno",
+      ghost: "Fantasma",
+      link: "Ver Detalles",
+      disabled: "No Disponible",
+    },
   },
 } as const;

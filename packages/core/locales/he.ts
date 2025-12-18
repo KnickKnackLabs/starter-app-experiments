@@ -14,5 +14,19 @@ export default {
     cancel: "ביטול",
     delete: "מחק",
     edit: "ערוך",
+    submit: "שלח",
+    confirm: "אשר",
+    learnMore: "למידע נוסף",
+  },
+  components: {
+    button: {
+      primary: "פעולה ראשית",
+      secondary: "משני",
+      destructive: "מחק פריט",
+      outline: "מתאר",
+      ghost: "שקוף",
+      link: "צפה בפרטים",
+      disabled: "לא זמין",
+    },
   },
 } as const;

@@ -14,5 +14,19 @@ export default {
     cancel: "إلغاء",
     delete: "حذف",
     edit: "تعديل",
+    submit: "إرسال",
+    confirm: "تأكيد",
+    learnMore: "اعرف المزيد",
+  },
+  components: {
+    button: {
+      primary: "الإجراء الرئيسي",
+      secondary: "ثانوي",
+      destructive: "حذف العنصر",
+      outline: "مخطط",
+      ghost: "شفاف",
+      link: "عرض التفاصيل",
+      disabled: "غير متاح",
+    },
   },
 } as const;

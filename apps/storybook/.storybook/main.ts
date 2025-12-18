@@ -21,6 +21,7 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-vitest"),
     getAbsolutePath("@storybook/addon-a11y"),
     getAbsolutePath("@storybook/addon-docs"),
+    getAbsolutePath("storybook-react-i18next"),
   ],
   framework: getAbsolutePath("@storybook/react-vite"),
   core: {
