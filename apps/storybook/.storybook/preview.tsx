@@ -14,17 +14,16 @@ const withI18n = (
 
   useEffect(() => {
     i18n.changeLanguage(locale);
-
-    // Update document direction for RTL languages
-    const direction = isRtl(locale) ? "rtl" : "ltr";
-    document.documentElement.dir = direction;
-    document.documentElement.lang = locale;
   }, [locale]);
+
+  const direction = isRtl(locale) ? "rtl" : "ltr";
 
   return (
     <Suspense fallback={<div>Loading translations...</div>}>
       <I18nextProvider i18n={i18n}>
-        <Story />
+        <div dir={direction} lang={locale} style={{ height: "100%" }}>
+          <Story />
+        </div>
       </I18nextProvider>
     </Suspense>
   );
