@@ -33,7 +33,9 @@ packages/
 ```sh
 pnpm web              # TanStack Start dev (http://localhost:3000)
 pnpm web:storybook    # Web Storybook (http://localhost:6006)
-pnpm native           # Expo dev server
+pnpm native           # Expo dev server (requires dev build first)
+pnpm native:ios       # Build and install iOS dev client
+pnpm native:android   # Build and install Android dev client
 pnpm native:storybook # Native Storybook (on-device)
 pnpm fix              # Biome lint/format
 ```
@@ -64,6 +66,26 @@ Both use semantic color tokens (primary, secondary, muted, etc.) via CSS variabl
 **Web**: Use Shadcn CLI or manually add to `packages/ui-web/src/components/ui/`
 
 **Native**: Use RNR CLI (`npx @react-native-reusables/cli@latest add <component>`) or manually add to `apps/expo/components/ui/`
+
+## Internationalization (i18n)
+
+Full documentation: [`docs/i18n.md`](../docs/i18n.md)
+
+**Key points:**
+
+- Translations live in `packages/core/locales/*.ts` (TypeScript, fully typed)
+- Supported languages: English, Spanish, Hebrew (RTL), Arabic (RTL), Russian
+- Use `useTranslation()` hook from `react-i18next` in components
+- For RTL, use `isRtl(i18n.language)` from `@starter/core/i18n` with conditional styling
+- **Never use `I18nManager`** on native - it requires app restart
+
+**Adding a new string:**
+
+1. Add to `packages/core/locales/en.ts` (source of truth)
+2. Add to all other locale files (`es.ts`, `he.ts`, `ar.ts`, `ru.ts`)
+3. Use in components: `t("myFeature.title")`
+
+**Storybook:** Both web and native Storybooks have language pickers for testing translations and RTL layouts.
 
 ---
 
