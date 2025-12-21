@@ -1,7 +1,39 @@
+// Intl polyfills for Hermes (React Native's JS engine)
+// These must be imported before i18next to enable relativetime, list, and plural formatters
+// Order matters! See: https://formatjs.io/docs/polyfills
+// Using polyfill-force for better performance on React Native (skips capability detection)
+import "@formatjs/intl-getcanonicallocales/polyfill-force.js";
+import "@formatjs/intl-locale/polyfill-force.js";
+import "@formatjs/intl-pluralrules/polyfill-force.js";
+import "@formatjs/intl-pluralrules/locale-data/en.js";
+import "@formatjs/intl-pluralrules/locale-data/es.js";
+import "@formatjs/intl-pluralrules/locale-data/he.js";
+import "@formatjs/intl-pluralrules/locale-data/ar.js";
+import "@formatjs/intl-pluralrules/locale-data/ru.js";
+import "@formatjs/intl-numberformat/polyfill-force.js";
+import "@formatjs/intl-numberformat/locale-data/en.js";
+import "@formatjs/intl-numberformat/locale-data/es.js";
+import "@formatjs/intl-numberformat/locale-data/he.js";
+import "@formatjs/intl-numberformat/locale-data/ar.js";
+import "@formatjs/intl-numberformat/locale-data/ru.js";
+import "@formatjs/intl-relativetimeformat/polyfill-force.js";
+import "@formatjs/intl-relativetimeformat/locale-data/en.js";
+import "@formatjs/intl-relativetimeformat/locale-data/es.js";
+import "@formatjs/intl-relativetimeformat/locale-data/he.js";
+import "@formatjs/intl-relativetimeformat/locale-data/ar.js";
+import "@formatjs/intl-relativetimeformat/locale-data/ru.js";
+import "@formatjs/intl-listformat/polyfill-force.js";
+import "@formatjs/intl-listformat/locale-data/en.js";
+import "@formatjs/intl-listformat/locale-data/es.js";
+import "@formatjs/intl-listformat/locale-data/he.js";
+import "@formatjs/intl-listformat/locale-data/ar.js";
+import "@formatjs/intl-listformat/locale-data/ru.js";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   defaultLanguage,
   defaultNS,
+  isRtl,
   resources,
   type SupportedLanguage,
   supportedLanguages,
@@ -10,6 +42,7 @@ import { getLocales } from "expo-localization";
 // biome-ignore lint/style/noExportedImports: Need to initialize i18n before exporting
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { I18nManager } from "react-native";
 
 // Import types for augmentation side-effect
 import "@starter/core/i18n";
@@ -78,11 +111,22 @@ export function initI18n() {
     },
   });
 
-  // After init, load saved language preference, then signal ready
+  // After init, load saved language preference and sync RTL state
   loadSavedLanguage()
     .then((savedLang) => {
+      const lang = savedLang ?? deviceLanguage;
       if (savedLang && savedLang !== i18n.language) {
         i18n.changeLanguage(savedLang);
+      }
+
+      // Ensure I18nManager RTL state matches the language
+      // This is needed on first load after the user previously selected an RTL language
+      const shouldBeRtl = isRtl(lang);
+      if (I18nManager.isRTL !== shouldBeRtl) {
+        I18nManager.allowRTL(shouldBeRtl);
+        I18nManager.forceRTL(shouldBeRtl);
+        // Note: The app will need to reload for this to take effect
+        // This happens automatically on next app start
       }
     })
     .finally(() => {

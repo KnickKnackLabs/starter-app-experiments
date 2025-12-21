@@ -1,7 +1,12 @@
-import { type SupportedLanguage, supportedLanguages } from "@starter/core/i18n";
+import {
+  isRtl,
+  type SupportedLanguage,
+  supportedLanguages,
+} from "@starter/core/i18n";
+import { reloadAppAsync } from "expo";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Pressable, View } from "react-native";
+import { Alert, I18nManager, Modal, Pressable, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { saveLanguage } from "../i18n";
@@ -20,10 +25,35 @@ export function LanguagePicker() {
   const currentLang =
     languages[i18n.language as SupportedLanguage] ?? languages.en;
 
-  const handleSelect = (lang: SupportedLanguage) => {
+  const handleSelect = async (lang: SupportedLanguage) => {
+    const currentIsRtl = isRtl(i18n.language);
+    const newIsRtl = isRtl(lang);
+    const rtlChanged = currentIsRtl !== newIsRtl;
+
+    // Save language and update i18next
+    await saveLanguage(lang);
     i18n.changeLanguage(lang);
-    saveLanguage(lang);
     setIsOpen(false);
+
+    // If RTL direction changed, we need to update I18nManager and reload
+    if (rtlChanged) {
+      I18nManager.allowRTL(newIsRtl);
+      I18nManager.forceRTL(newIsRtl);
+
+      // Give user feedback before reload
+      Alert.alert(
+        newIsRtl ? "שינוי כיוון" : "Direction Change",
+        newIsRtl
+          ? "האפליקציה תופעל מחדש כדי להחיל את הכיוון החדש"
+          : "The app will restart to apply the new layout direction",
+        [
+          {
+            text: "OK",
+            onPress: () => reloadAppAsync(),
+          },
+        ]
+      );
+    }
   };
 
   return (

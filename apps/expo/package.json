@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "@formatjs/intl-getcanonicallocales": "^3.0.3",
+    "@formatjs/intl-listformat": "^8.0.4",
+    "@formatjs/intl-locale": "^5.0.4",
+    "@formatjs/intl-numberformat": "^9.0.5",
+    "@formatjs/intl-pluralrules": "^6.0.4",
+    "@formatjs/intl-relativetimeformat": "^12.0.5",
     "@gorhom/bottom-sheet": "^5.2.8",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "^8.4.4",
