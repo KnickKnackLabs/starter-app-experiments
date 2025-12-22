@@ -32,9 +32,9 @@ export default {
   },
   examples: {
     numbers: {
-      basic: "משתמשים {{val, number}}",
-      percent: "הושלם {{val, number(style: 'percent')}}",
-      compact: "עוקבים {{val, number(notation: 'compact')}}",
+      basic: "{{val, number}} משתמשים",
+      percent: "{{val, number(style: 'percent')}} הושלם",
+      compact: "{{val, number(notation: 'compact')}} עוקבים",
     },
     currency: {
       usd: "{{val, currency(USD)}}",
