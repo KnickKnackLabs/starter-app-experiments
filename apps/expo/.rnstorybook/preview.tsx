@@ -1,8 +1,4 @@
-import {
-  isRtl,
-  type SupportedLanguage,
-  supportedLanguages,
-} from "@starter/core/i18n";
+import { type SupportedLanguage, supportedLanguages } from "@starter/core/i18n";
 import type { Preview } from "@storybook/react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -86,30 +82,25 @@ function LanguagePicker() {
   );
 }
 
-// Decorator that adds language picker and RTL support
-const withI18n = (Story: React.ComponentType) => {
-  const { i18n } = useTranslation();
-  const rtl = isRtl(i18n.language);
-
-  return (
-    <View style={{ flex: 1 }}>
-      <View
-        style={{
-          paddingHorizontal: 8,
-          paddingVertical: 6,
-          borderBottomWidth: 1,
-          borderBottomColor: "#e0e0e0",
-          backgroundColor: "#fafafa",
-        }}
-      >
-        <LanguagePicker />
-      </View>
-      <View style={{ flex: 1, direction: rtl ? "rtl" : "ltr" }}>
-        <Story />
-      </View>
+// Decorator that adds language picker
+const withI18n = (Story: React.ComponentType) => (
+  <View style={{ flex: 1 }}>
+    <View
+      style={{
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        borderBottomWidth: 1,
+        borderBottomColor: "#e0e0e0",
+        backgroundColor: "#fafafa",
+      }}
+    >
+      <LanguagePicker />
     </View>
-  );
-};
+    <View style={{ flex: 1 }}>
+      <Story />
+    </View>
+  </View>
+);
 
 const preview: Preview = {
   parameters: {

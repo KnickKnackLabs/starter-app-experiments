@@ -2,8 +2,25 @@ import { isRtl } from "@starter/core/i18n";
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, View } from "react-native";
+import { I18nManager, Pressable, ScrollView, View } from "react-native";
 import { Text } from "./ui/text";
+
+/**
+ * Get the flex direction that produces the correct visual layout for the current language.
+ * This accounts for I18nManager.isRTL which persists until app restart.
+ *
+ * - If language RTL matches I18nManager.isRTL: use "row" (native handles it)
+ * - If they don't match: use "row-reverse" to counteract native behavior
+ */
+function useFlexDirection(): "row" | "row-reverse" {
+  const { i18n } = useTranslation();
+  const languageIsRtl = isRtl(i18n.language);
+  const nativeIsRtl = I18nManager.isRTL;
+
+  // If native RTL matches language RTL, "row" works correctly
+  // If they mismatch, we need "row-reverse" to counteract
+  return languageIsRtl === nativeIsRtl ? "row" : "row-reverse";
+}
 
 const meta: Meta = {
   title: "Localization/Formatting Examples",
@@ -473,6 +490,7 @@ export const Ordinals: Story = {
 function RTLLayoutDemo() {
   const { t, i18n } = useTranslation();
   const rtl = isRtl(i18n.language);
+  const flexDirection = useFlexDirection();
 
   return (
     <View style={{ gap: 16 }}>
@@ -493,13 +511,13 @@ function RTLLayoutDemo() {
         {/* Navigation example */}
         <View
           style={{
-            flexDirection: rtl ? "row-reverse" : "row",
+            flexDirection,
             justifyContent: "space-between",
             alignItems: "center",
           }}
         >
           <Text style={{ fontWeight: "600" }}>{t("common.appName")}</Text>
-          <View style={{ flexDirection: rtl ? "row-reverse" : "row", gap: 16 }}>
+          <View style={{ flexDirection, gap: 16 }}>
             <Text style={{ color: "#0066cc" }}>{t("actions.edit")}</Text>
             <Text style={{ color: "#0066cc" }}>{t("actions.learnMore")}</Text>
           </View>
@@ -521,7 +539,7 @@ function RTLLayoutDemo() {
           </Text>
           <View
             style={{
-              flexDirection: rtl ? "row-reverse" : "row",
+              flexDirection,
               justifyContent: "flex-end",
               gap: 8,
               marginTop: 8,
@@ -555,7 +573,7 @@ function RTLLayoutDemo() {
         <View style={{ gap: 8 }}>
           <View
             style={{
-              flexDirection: rtl ? "row-reverse" : "row",
+              flexDirection,
               justifyContent: "space-between",
             }}
           >
