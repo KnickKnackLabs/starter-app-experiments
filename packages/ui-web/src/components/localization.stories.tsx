@@ -443,7 +443,7 @@ function RTLLayoutDemo() {
           <span className="font-medium">{t("common.appName")}</span>
           <nav className="flex gap-4 text-sm">
             <a className="hover:underline" href="#home">
-              {t("home.welcome", { appName: "" }).replace("  ", " ").trim()}
+              {t("nav.home")}
             </a>
             <a className="hover:underline" href="#about">
               {t("actions.learnMore")}

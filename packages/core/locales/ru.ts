@@ -10,6 +10,9 @@ export default {
     welcome: "Добро пожаловать в {{appName}}",
     description: "Кроссплатформенный стартовый шаблон",
   },
+  nav: {
+    home: "Главная",
+  },
   actions: {
     save: "Сохранить",
     cancel: "Отмена",

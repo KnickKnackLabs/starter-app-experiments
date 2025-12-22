@@ -10,6 +10,9 @@ export default {
     welcome: "Bienvenido a {{appName}}",
     description: "Una plantilla inicial multiplataforma",
   },
+  nav: {
+    home: "Inicio",
+  },
   actions: {
     save: "Guardar",
     cancel: "Cancelar",

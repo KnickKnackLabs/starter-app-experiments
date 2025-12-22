@@ -10,6 +10,9 @@ export default {
     welcome: "ברוכים הבאים ל-{{appName}}",
     description: "תבנית התחלה חוצת פלטפורמות",
   },
+  nav: {
+    home: "בית",
+  },
   actions: {
     save: "שמור",
     cancel: "ביטול",

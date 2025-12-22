@@ -10,6 +10,9 @@ export default {
     welcome: "Welcome to {{appName}}",
     description: "A cross-platform starter template",
   },
+  nav: {
+    home: "Home",
+  },
   actions: {
     save: "Save",
     cancel: "Cancel",

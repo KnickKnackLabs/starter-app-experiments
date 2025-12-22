@@ -10,6 +10,9 @@ export default {
     welcome: "مرحباً بك في {{appName}}",
     description: "قالب بداية متعدد المنصات",
   },
+  nav: {
+    home: "الرئيسية",
+  },
   actions: {
     save: "حفظ",
     cancel: "إلغاء",
