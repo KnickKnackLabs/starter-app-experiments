@@ -5,6 +5,7 @@ A monorepo starter with:
 - **Web**: TanStack Start + Tailwind CSS v4
 - **Mobile**: Expo + NativeWind + React Native Reusables
 - **Storybook**: Component development for web and native
+- **i18n**: Full internationalization with 5 languages and RTL support
 
 ## Getting Started
 
@@ -21,10 +22,13 @@ pnpm native           # Expo dev server
 pnpm native:storybook # Native Storybook (on-device)
 ```
 
-### Linting
+### Code Quality
 
 ```sh
-pnpm fix        # Run Biome linter/formatter
+pnpm lint             # Check for lint/format issues
+pnpm lint:fix         # Auto-fix lint/format issues
+pnpm typecheck        # TypeScript type checking
+pnpm check            # Run all checks (lint + typecheck)
 ```
 
 ## Structure
@@ -36,6 +40,10 @@ apps/
   storybook/    # Storybook for web components
 
 packages/
-  core/         # Shared types and schemas
+  core/         # Shared types, schemas, and i18n
   ui-web/       # Shared web components (Shadcn/Tailwind)
 ```
+
+## Documentation
+
+- [Internationalization (i18n)](docs/i18n.md) - Adding translations, RTL support, and localization
