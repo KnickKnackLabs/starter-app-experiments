@@ -105,7 +105,6 @@ export function initI18n() {
     fallbackLng: defaultLanguage,
     supportedLngs: [...supportedLanguages],
     defaultNS,
-    compatibilityJSON: "v3", // Required for React Native
     interpolation: {
       escapeValue: false, // React Native doesn't need XSS escaping
     },

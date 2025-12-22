@@ -55,7 +55,8 @@ function TranslatedButton({
   const { t } = useTranslation();
   return (
     <Button {...props}>
-      <Text>{t(translationKey)}</Text>
+      {/* biome-ignore lint/suspicious/noExplicitAny: Dynamic key for demo purposes */}
+      <Text>{t(translationKey as any)}</Text>
     </Button>
   );
 }

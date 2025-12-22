@@ -37,7 +37,10 @@ pnpm native           # Expo dev server (requires dev build first)
 pnpm native:ios       # Build and install iOS dev client
 pnpm native:android   # Build and install Android dev client
 pnpm native:storybook # Native Storybook (on-device)
-pnpm fix              # Biome lint/format
+pnpm lint             # Check for lint/format issues
+pnpm lint:fix         # Auto-fix lint/format issues
+pnpm typecheck        # TypeScript type checking
+pnpm check            # Run all checks (lint + typecheck)
 ```
 
 ## Path Aliases
@@ -76,8 +79,8 @@ Full documentation: [`docs/i18n.md`](../docs/i18n.md)
 - Translations live in `packages/core/locales/*.ts` (TypeScript, fully typed)
 - Supported languages: English, Spanish, Hebrew (RTL), Arabic (RTL), Russian
 - Use `useTranslation()` hook from `react-i18next` in components
-- For RTL, use `isRtl(i18n.language)` from `@starter/core/i18n` with conditional styling
-- **Never use `I18nManager`** on native - it requires app restart
+- For RTL on native, the app uses `I18nManager.forceRTL()` with a reload prompt
+- Use `isRtl(i18n.language)` from `@starter/core/i18n` for conditional styling
 
 **Adding a new string:**
 
@@ -95,8 +98,10 @@ This project uses **Ultracite**, a zero-config Biome preset that enforces strict
 
 ## Quick Reference
 
-- **Format code**: `pnpm fix` (or `npx biome check --write .`)
-- **Check for issues**: `npx biome check .`
+- **Check for issues**: `pnpm lint`
+- **Auto-fix issues**: `pnpm lint:fix`
+- **Type checking**: `pnpm typecheck`
+- **Run all checks**: `pnpm check`
 
 Biome provides extremely fast Rust-based linting and formatting. Most issues are automatically fixable.
 
@@ -176,4 +181,4 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 
 ---
 
-Most formatting and common issues are automatically fixed by Biome. Run `pnpm fix` before committing.
+Most formatting and common issues are automatically fixed by Biome. Run `pnpm lint:fix` before committing.

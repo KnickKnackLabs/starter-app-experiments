@@ -135,7 +135,10 @@ function CurrencyFormattingDemo() {
             }}
           >
             <Text style={{ color: "#666" }}>{label}:</Text>
-            <Text>{t(`examples.currency.${key}`, { val: 1234.56 })}</Text>
+            <Text>
+              {/* biome-ignore lint/suspicious/noExplicitAny: Dynamic key for demo */}
+              {t(`examples.currency.${key}` as any, { val: 1234.56 })}
+            </Text>
           </View>
         ))}
         <View
@@ -197,7 +200,8 @@ function DateTimeFormattingDemo() {
           >
             <Text style={{ color: "#666" }}>{label}:</Text>
             <Text style={{ flexShrink: 1, textAlign: rtl ? "left" : "right" }}>
-              {t(`examples.dates.${key}`, { val: now })}
+              {/* biome-ignore lint/suspicious/noExplicitAny: Dynamic key for demo */}
+              {t(`examples.dates.${key}` as any, { val: now })}
             </Text>
           </View>
         ))}
@@ -249,7 +253,8 @@ function RelativeTimeDemo() {
             }}
           >
             <Text style={{ color: "#666" }}>{label}:</Text>
-            <Text>{t(key, { val })}</Text>
+            {/* biome-ignore lint/suspicious/noExplicitAny: Dynamic key for demo */}
+            <Text>{t(key as any, { val })}</Text>
           </View>
         ))}
       </View>
@@ -382,7 +387,10 @@ function CounterRow({
           </Pressable>
         </View>
       </View>
-      <Text style={{ fontSize: 16 }}>{t(translationKey, { count })}</Text>
+      <Text style={{ fontSize: 16 }}>
+        {/* biome-ignore lint/suspicious/noExplicitAny: Dynamic key for demo */}
+        {t(translationKey as any, { count })}
+      </Text>
     </View>
   );
 }

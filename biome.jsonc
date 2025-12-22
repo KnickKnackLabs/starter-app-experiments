@@ -5,8 +5,6 @@
   "extends": ["ultracite/core", "ultracite/react", "ultracite/remix"],
   "files": {
     "includes": [
-      "**",
-      // Auto-generated files
       "!apps/expo/.rnstorybook/storybook.requires.ts",
       "!apps/web/src/routeTree.gen.ts"
     ]
