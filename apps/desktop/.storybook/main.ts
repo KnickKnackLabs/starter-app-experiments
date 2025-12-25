@@ -1,6 +1,8 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { StorybookConfig } from "@storybook/react-vite";
+import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -25,6 +27,12 @@ const config: StorybookConfig = {
   framework: getAbsolutePath("@storybook/react-vite"),
   core: {
     disableTelemetry: true,
+  },
+  viteFinal: (viteConfig) => {
+    viteConfig.plugins = viteConfig.plugins || [];
+    viteConfig.plugins.push(tailwindcss());
+    viteConfig.plugins.push(tsconfigPaths());
+    return viteConfig;
   },
 };
 
