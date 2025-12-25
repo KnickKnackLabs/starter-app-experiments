@@ -263,7 +263,7 @@ importers:
   apps/storybook:
     dependencies:
       '@starter/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/core
       '@starter/ui-web':
         specifier: workspace:*
