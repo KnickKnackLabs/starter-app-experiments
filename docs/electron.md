@@ -91,7 +91,7 @@ The desktop app imports shared packages using pnpm workspace protocol:
 {
   "dependencies": {
     "@starter/core": "workspace:*",
-    "ui-web": "workspace:*"
+    "@starter/ui-web": "workspace:*"
   }
 }
 ```

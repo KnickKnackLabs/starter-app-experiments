@@ -32,6 +32,9 @@ importers:
       '@starter/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@starter/ui-web':
+        specifier: workspace:*
+        version: link:../../packages/ui-web
       electron-squirrel-startup:
         specifier: ^1.0.1
         version: 1.0.1
@@ -47,9 +50,6 @@ importers:
       react-i18next:
         specifier: ^16.5.0
         version: 16.5.0(i18next@25.7.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
-      ui-web:
-        specifier: workspace:*
-        version: link:../../packages/ui-web
     devDependencies:
       '@electron-forge/cli':
         specifier: ^7.10.2
@@ -265,6 +265,9 @@ importers:
       '@starter/core':
         specifier: workspace:^
         version: link:../../packages/core
+      '@starter/ui-web':
+        specifier: workspace:*
+        version: link:../../packages/ui-web
       i18next:
         specifier: ^25.7.3
         version: 25.7.3(typescript@5.9.3)
@@ -280,9 +283,6 @@ importers:
       storybook-react-i18next:
         specifier: ^10.0.1
         version: 10.0.1(i18next-browser-languagedetector@8.2.0)(i18next-http-backend@3.0.2(encoding@0.1.13))(i18next@25.7.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react-i18next@16.5.0(i18next@25.7.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(react@19.1.0)(storybook@10.1.10(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
-      ui-web:
-        specifier: workspace:*
-        version: link:../../packages/ui-web
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.1.3
@@ -344,6 +344,9 @@ importers:
       '@starter/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@starter/ui-web':
+        specifier: workspace:*
+        version: link:../../packages/ui-web
       '@tanstack/react-router':
         specifier: ^1.94.1
         version: 1.141.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -368,9 +371,6 @@ importers:
       react-i18next:
         specifier: ^16.5.0
         version: 16.5.0(i18next@25.7.3(typescript@5.9.3))(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
-      ui-web:
-        specifier: workspace:*
-        version: link:../../packages/ui-web
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.1.18

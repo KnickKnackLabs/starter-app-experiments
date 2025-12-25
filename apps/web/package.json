@@ -19,7 +19,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^16.5.0",
-    "ui-web": "workspace:*"
+    "@starter/ui-web": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.18",
