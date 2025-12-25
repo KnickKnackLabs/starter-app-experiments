@@ -17,7 +17,7 @@
     "native:android": "pnpm --filter expo-app run android",
     "native:storybook": "pnpm --filter expo-app run storybook",
     "web": "pnpm --filter web-app run dev",
-    "web:storybook": "pnpm --filter storybook run storybook",
+    "web:storybook": "pnpm --filter web-app run storybook",
     "desktop": "pnpm --filter desktop-app run start",
     "desktop:package": "pnpm --filter desktop-app run package",
     "desktop:make": "pnpm --filter desktop-app run make",

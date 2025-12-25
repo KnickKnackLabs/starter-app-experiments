@@ -9,7 +9,6 @@ A monorepo template for building cross-platform apps with shared tooling.
 | `apps/web` | TanStack Start (Vite) | Tailwind CSS v4 | Shadcn |
 | `apps/expo` | Expo Router | NativeWind v4 | React Native Reusables |
 | `apps/desktop` | Electron Forge (Vite) | Tailwind CSS v4 | Shadcn |
-| `apps/storybook` | Storybook + Vite | Tailwind CSS v4 | — |
 
 ## Structure
 
@@ -22,7 +21,6 @@ apps/
     components/ui/   # RNR components (Button, Text, etc.)
   web/               # Web app (TanStack Start)
     src/app/         # File-based routes
-  storybook/         # Web component Storybook
 
 packages/
   core/              # Shared types, schemas (@starter/core)
@@ -68,8 +66,9 @@ Both use semantic color tokens (primary, secondary, muted, etc.) via CSS variabl
 
 ## Storybook
 
-- **Web**: Standalone app at `apps/storybook`. Run with `pnpm web:storybook`.
-- **Native**: Integrated into Expo app. Run with `pnpm native:storybook` (sets `EXPO_PUBLIC_STORYBOOK_ENABLED=true`). Access via `/storybook` route (dev only, protected by `Stack.Protected`).
+- **Web**: Integrated into web app at `apps/web/.storybook`. Run with `pnpm web:storybook`.
+- **Desktop**: Integrated into desktop app at `apps/desktop/.storybook`. Run with `pnpm desktop:storybook`.
+- **Native**: Integrated into Expo app at `apps/expo/.rnstorybook`. Run with `pnpm native:storybook` (sets `EXPO_PUBLIC_STORYBOOK_ENABLED=true`). Access via `/storybook` route (dev only, protected by `Stack.Protected`).
 
 ## Adding Components
 

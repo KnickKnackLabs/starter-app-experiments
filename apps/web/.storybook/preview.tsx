@@ -3,7 +3,7 @@ import type { Preview } from "@storybook/react-vite";
 import { Suspense, useEffect } from "react";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
-import "../src/styles.css";
+import "../src/styles/storybook.css";
 
 // Decorator that syncs Storybook locale with i18n
 const withI18n = (

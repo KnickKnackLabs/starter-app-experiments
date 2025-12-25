@@ -41,7 +41,6 @@ apps/
   desktop/      # Electron desktop app (Electron Forge + Vite)
   expo/         # React Native app (Expo Router)
   web/          # Web app (TanStack Start)
-  storybook/    # Storybook for web components
 
 packages/
   core/         # Shared types, schemas, and i18n
