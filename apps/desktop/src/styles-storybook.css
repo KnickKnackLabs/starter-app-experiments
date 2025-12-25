@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@import "../../../packages/ui-web/src/styles/theme.css";
+
+/* Include ui-web package for class scanning */
+@source "../../../packages/ui-web/src";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

@@ -41,6 +41,7 @@ pnpm native:ios       # Build and install iOS dev client
 pnpm native:android   # Build and install Android dev client
 pnpm native:storybook # Native Storybook (on-device)
 pnpm desktop          # Electron desktop app
+pnpm desktop:storybook # Desktop Storybook (http://localhost:6007)
 pnpm desktop:package  # Package desktop app for current platform
 pnpm desktop:make     # Build distributable installers
 pnpm lint             # Check for lint/format issues

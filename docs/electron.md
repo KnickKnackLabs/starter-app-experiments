@@ -206,6 +206,36 @@ pnpm desktop
 
 This starts Electron Forge with Vite's dev server, providing hot module replacement for the renderer.
 
+### Storybook
+
+```sh
+pnpm desktop:storybook
+```
+
+Opens Storybook at `http://localhost:6007` for developing and testing UI components.
+
+**Why browser-based?** The desktop Storybook runs in your browser rather than inside an Electron window. This is a conscious design decision:
+
+- Electron's renderer is Chromium, so components render identically in the browser
+- Browser-based Storybook provides the full Storybook UI with hot reload
+- Simpler setup without coordinating multiple processes
+
+The Storybook includes:
+- All stories from `apps/desktop/src/**/*.stories.tsx`
+- Shared component stories from `packages/ui-web/src/**/*.stories.tsx`
+- Language picker with 5 languages and RTL support
+- Accessibility testing via `@storybook/addon-a11y`
+
+**Alternative: Embedded in Electron**
+
+If you need to test Electron-specific APIs (IPC, native menus, etc.) within stories, you could modify the setup to load Storybook inside an Electron window:
+
+1. Start Storybook dev server: `storybook dev -p 6007`
+2. Modify `main.ts` to load `http://localhost:6007` instead of the app
+3. Or create a separate script that starts both and opens an Electron window pointing to Storybook
+
+This approach is more complex but allows stories to access `window.electronAPI` and other Electron-specific globals.
+
 ### DevTools
 
 DevTools open automatically in development. You can also toggle with:

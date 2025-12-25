@@ -20,7 +20,8 @@
     "web:storybook": "pnpm --filter storybook run storybook",
     "desktop": "pnpm --filter desktop-app run start",
     "desktop:package": "pnpm --filter desktop-app run package",
-    "desktop:make": "pnpm --filter desktop-app run make"
+    "desktop:make": "pnpm --filter desktop-app run make",
+    "desktop:storybook": "pnpm --filter desktop-app run storybook"
   },
   "pnpm": {
     "overrides": {
