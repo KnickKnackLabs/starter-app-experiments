@@ -1,6 +1,6 @@
 /*
  * Shared Shadcn theme variables (OKLCH color system)
- * Used by: apps/next, apps/storybook, future apps/electron
+ * Used by: apps/web, apps/desktop
  */
 
 @custom-variant dark (&:is(.dark *));
