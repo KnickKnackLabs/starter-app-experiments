@@ -10,7 +10,11 @@
     ]
   },
   "javascript": {
-    "globals": ["__DEV__"]
+    "globals": [
+      "__DEV__",
+      "MAIN_WINDOW_VITE_DEV_SERVER_URL",
+      "MAIN_WINDOW_VITE_NAME"
+    ]
   },
   "css": {
     "parser": {
