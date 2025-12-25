@@ -8,12 +8,15 @@ A monorepo template for building cross-platform apps with shared tooling.
 |-----|-----------|---------|------------|
 | `apps/web` | TanStack Start (Vite) | Tailwind CSS v4 | Shadcn |
 | `apps/expo` | Expo Router | NativeWind v4 | React Native Reusables |
+| `apps/desktop` | Electron Forge (Vite) | Tailwind CSS v4 | Shadcn |
 | `apps/storybook` | Storybook + Vite | Tailwind CSS v4 | — |
 
 ## Structure
 
 ```
 apps/
+  desktop/           # Electron desktop app (Electron Forge + Vite)
+    src/             # Main, preload, and renderer processes
   expo/              # React Native app (Expo Router)
     app/             # File-based routes
     components/ui/   # RNR components (Button, Text, etc.)
@@ -37,6 +40,9 @@ pnpm native           # Expo dev server (requires dev build first)
 pnpm native:ios       # Build and install iOS dev client
 pnpm native:android   # Build and install Android dev client
 pnpm native:storybook # Native Storybook (on-device)
+pnpm desktop          # Electron desktop app
+pnpm desktop:package  # Package desktop app for current platform
+pnpm desktop:make     # Build distributable installers
 pnpm lint             # Check for lint/format issues
 pnpm lint:fix         # Auto-fix lint/format issues
 pnpm typecheck        # TypeScript type checking
