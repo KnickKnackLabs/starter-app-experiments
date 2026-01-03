@@ -9,6 +9,12 @@ export type DragState = {
   compatibleSlots: Array<{ parentNodeId: string; slot: NodeSlot }>;
   /** Slots currently being overlapped by the dragged node (parentNodeId:slotId) */
   overlappingSlotKeys: Set<string>;
+  /**
+   * Slot that has "captured" this node (magnetic effect).
+   * Once cursor enters a compatible slot, the node stays captured until
+   * the entire node is dragged out of the slot bounds.
+   */
+  capturedBySlot: string | null;
 } | null;
 
 /** Create a unique key for a slot */

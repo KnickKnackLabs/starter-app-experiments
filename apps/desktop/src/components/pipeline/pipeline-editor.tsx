@@ -25,14 +25,84 @@ const nodeTypes = {
   blackbox: BlackboxNode,
 };
 
+/**
+ * Calculate the distance from a point to the nearest edge of a rect.
+ * Returns 0 if point is inside the rect, positive distance if outside.
+ */
+const distanceFromRect = (x: number, y: number, rect: DOMRect): number => {
+  const dx = Math.max(rect.left - x, 0, x - rect.right);
+  const dy = Math.max(rect.top - y, 0, y - rect.bottom);
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+type SlotCheckParams = {
+  key: string;
+  slotRect: DOMRect;
+  mouse: { x: number; y: number };
+  isCompatible: boolean;
+  currentCapture: string | null;
+  /** Distance in pixels cursor must travel from slot edge to release */
+  releaseDistance: number;
+};
+
+type SlotCheckResult = {
+  overlapping: boolean;
+  capture: string | null;
+};
+
+/** Check a single slot's overlap and capture state during drag */
+function checkSlotOverlap(params: SlotCheckParams): SlotCheckResult {
+  const {
+    key,
+    slotRect,
+    mouse,
+    isCompatible,
+    currentCapture,
+    releaseDistance,
+  } = params;
+
+  const cursorInSlot =
+    mouse.x >= slotRect.left &&
+    mouse.x <= slotRect.right &&
+    mouse.y >= slotRect.top &&
+    mouse.y <= slotRect.bottom;
+
+  // Cursor in slot: overlapping, and capture if compatible and not already captured
+  if (cursorInSlot) {
+    const capture = isCompatible && !currentCapture ? key : currentCapture;
+    return { overlapping: true, capture };
+  }
+
+  // Cursor left but this slot captured us: check if cursor is far enough away
+  if (currentCapture === key) {
+    const distance = distanceFromRect(mouse.x, mouse.y, slotRect);
+    const shouldRelease = distance >= releaseDistance;
+    return {
+      overlapping: !shouldRelease,
+      capture: shouldRelease ? null : currentCapture,
+    };
+  }
+
+  return { overlapping: false, capture: currentCapture };
+}
+
 type PipelineEditorProps = {
   initialNodes?: Node<BlackboxNodeData>[];
   initialEdges?: Edge[];
+  /** Snap grid size in pixels. Default: [8, 8] */
+  snapGrid?: [number, number];
+  /**
+   * Distance in pixels cursor must travel from slot edge to release.
+   * Default: 20
+   */
+  magneticReleaseDistance?: number;
 };
 
 export function PipelineEditor({
   initialNodes = [],
   initialEdges = [],
+  snapGrid = [8, 8],
+  magneticReleaseDistance = 20,
 }: PipelineEditorProps) {
   const [nodes, setNodes] = useState<Node<BlackboxNodeData>[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
@@ -235,98 +305,89 @@ export function PipelineEditor({
         nodeData: draggedNode.data,
         compatibleSlots,
         overlappingSlotKeys: new Set(),
+        capturedBySlot: null,
       });
     },
     [nodes]
   );
 
   // Update overlap state during drag using actual slot DOM positions
+  // Implements "magnetic" capture: cursor must enter slot to capture,
+  // but cursor must move releaseDistance pixels away to release
   const onNodeDrag: OnNodeDrag<Node<BlackboxNodeData>> = useCallback(
     (event, draggedNode) => {
-      const overlappingSlotKeys = new Set<string>();
-
-      // Get mouse position from the event
-      const mouseX = event.clientX;
-      const mouseY = event.clientY;
-
-      // Check each registered slot ref
-      for (const [key, element] of slotRefsMap.current) {
-        // Skip the dragged node's own slots (can't slot into itself)
-        if (key.startsWith(`${draggedNode.id}:`)) {
-          continue;
-        }
-
-        const rect = element.getBoundingClientRect();
-
-        // Check if mouse is within the slot bounds
-        if (
-          mouseX >= rect.left &&
-          mouseX <= rect.right &&
-          mouseY >= rect.top &&
-          mouseY <= rect.bottom
-        ) {
-          overlappingSlotKeys.add(key);
-        }
-      }
+      const mouse = { x: event.clientX, y: event.clientY };
 
       setDragState((prev) => {
         if (!prev) {
           return prev;
         }
-        return { ...prev, overlappingSlotKeys };
+
+        const overlappingSlotKeys = new Set<string>();
+        let capturedBySlot = prev.capturedBySlot;
+
+        for (const [key, element] of slotRefsMap.current) {
+          if (key.startsWith(`${draggedNode.id}:`)) {
+            continue;
+          }
+
+          const isCompatible = prev.compatibleSlots.some(
+            (cs) => `${cs.parentNodeId}:${cs.slot.id}` === key
+          );
+
+          const result = checkSlotOverlap({
+            key,
+            slotRect: element.getBoundingClientRect(),
+            mouse,
+            isCompatible,
+            currentCapture: capturedBySlot,
+            releaseDistance: magneticReleaseDistance,
+          });
+
+          if (result.overlapping) {
+            overlappingSlotKeys.add(key);
+          }
+          capturedBySlot = result.capture;
+        }
+
+        return { ...prev, overlappingSlotKeys, capturedBySlot };
       });
     },
-    []
+    [magneticReleaseDistance]
   );
 
   // Check if a dragged node overlaps with a slot and can fill it
+  // Uses capturedBySlot for magnetic drop behavior
   const onNodeDragStop: OnNodeDrag<Node<BlackboxNodeData>> = useCallback(
-    (event, draggedNode) => {
-      // Get the current overlapping slots before clearing drag state
-      const mouseX = event.clientX;
-      const mouseY = event.clientY;
+    (_event, draggedNode) => {
+      // Check if we have a captured slot from the magnetic effect
+      const captured = dragState?.capturedBySlot;
 
-      // Find the slot under the mouse
-      for (const [key, element] of slotRefsMap.current) {
-        // Skip the dragged node's own slots (can't slot into itself)
-        if (key.startsWith(`${draggedNode.id}:`)) {
-          continue;
-        }
+      if (captured) {
+        const [parentNodeId, slotId] = captured.split(":");
+        const parentNode = nodes.find((n) => n.id === parentNodeId);
+        const slot = parentNode?.data.slots?.find((s) => s.id === slotId);
 
-        const rect = element.getBoundingClientRect();
-
+        // Verify the slot is still valid and fillable
         if (
-          mouseX >= rect.left &&
-          mouseX <= rect.right &&
-          mouseY >= rect.top &&
-          mouseY <= rect.bottom
+          slot &&
+          !slot.filledBy &&
+          canFillSlot(
+            slot.accepts,
+            draggedNode.data.inputs,
+            draggedNode.data.outputs
+          )
         ) {
-          // Parse the key to get parentNodeId and slotId
-          const [parentNodeId, slotId] = key.split(":");
-          const parentNode = nodes.find((n) => n.id === parentNodeId);
-          const slot = parentNode?.data.slots?.find((s) => s.id === slotId);
-
-          // Check if this slot can accept the dragged node
-          if (
-            slot &&
-            !slot.filledBy &&
-            canFillSlot(
-              slot.accepts,
-              draggedNode.data.inputs,
-              draggedNode.data.outputs
-            )
-          ) {
-            handleSlotFill(parentNodeId, slotId, draggedNode.id);
-            setDragState(null);
-            return;
-          }
+          handleSlotFill(parentNodeId, slotId, draggedNode.id);
+          setDragState(null);
+          return;
         }
       }
 
-      // No valid slot found, just clear the drag state
+      // No captured slot, just clear the drag state
       setDragState(null);
     },
-    [nodes, handleSlotFill]
+    [nodes, handleSlotFill, dragState?.capturedBySlot]
   );
 
   return (
@@ -344,7 +405,7 @@ export function PipelineEditor({
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onNodesChange={onNodesChange}
-          snapGrid={[16, 16]}
+          snapGrid={snapGrid}
           snapToGrid
         >
           <Background gap={16} size={1} />
