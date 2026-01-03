@@ -242,7 +242,7 @@ export function PipelineEditor({
 
   // Update overlap state during drag using actual slot DOM positions
   const onNodeDrag: OnNodeDrag<Node<BlackboxNodeData>> = useCallback(
-    (event, _draggedNode) => {
+    (event, draggedNode) => {
       const overlappingSlotKeys = new Set<string>();
 
       // Get mouse position from the event
@@ -251,6 +251,11 @@ export function PipelineEditor({
 
       // Check each registered slot ref
       for (const [key, element] of slotRefsMap.current) {
+        // Skip the dragged node's own slots (can't slot into itself)
+        if (key.startsWith(`${draggedNode.id}:`)) {
+          continue;
+        }
+
         const rect = element.getBoundingClientRect();
 
         // Check if mouse is within the slot bounds
@@ -283,6 +288,11 @@ export function PipelineEditor({
 
       // Find the slot under the mouse
       for (const [key, element] of slotRefsMap.current) {
+        // Skip the dragged node's own slots (can't slot into itself)
+        if (key.startsWith(`${draggedNode.id}:`)) {
+          continue;
+        }
+
         const rect = element.getBoundingClientRect();
 
         if (
