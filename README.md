@@ -51,3 +51,4 @@ packages/
 
 - [Electron Desktop App](docs/electron.md) - Adding Electron to a pnpm monorepo
 - [Internationalization (i18n)](docs/i18n.md) - Adding translations, RTL support, and localization
+- [Technical Reference](.claude/CLAUDE.md) - Detailed architecture, commands, and code standards

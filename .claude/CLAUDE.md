@@ -23,11 +23,25 @@ apps/
     src/app/         # File-based routes
 
 packages/
-  core/              # Shared types, schemas (@starter/core)
+  core/              # Shared types, schemas, i18n (@starter/core)
   ui-web/            # Web components (@starter/ui-web)
     src/components/ui/  # Shadcn components
     src/styles/theme.css  # Shared OKLCH theme
 ```
+
+## Package Dependencies
+
+```
+@starter/core ─────► @starter/ui-web ─────► apps/web
+      │                    │                apps/desktop
+      │                    └──────────────►
+      │
+      └──────────────────────────────────► apps/expo
+```
+
+- **`@starter/core`**: Foundation package with no app dependencies. Add shared types, Zod schemas, utilities, and i18n here.
+- **`@starter/ui-web`**: Web component library depending on core. Used by both web and desktop apps.
+- **Apps**: Import from packages but never from each other.
 
 ## Commands
 
@@ -72,7 +86,7 @@ Both use semantic color tokens (primary, secondary, muted, etc.) via CSS variabl
 
 ## Adding Components
 
-**Web**: Use Shadcn CLI or manually add to `packages/ui-web/src/components/ui/`
+**Web/Desktop**: Use Shadcn CLI or manually add to `packages/ui-web/src/components/ui/`. Both apps share these components.
 
 **Native**: Use RNR CLI (`npx @react-native-reusables/cli@latest add <component>`) or manually add to `apps/expo/components/ui/`
 
@@ -98,93 +112,21 @@ Full documentation: [`docs/i18n.md`](../docs/i18n.md)
 
 ---
 
-# Ultracite Code Standards
+## Code Standards (Ultracite)
 
-This project uses **Ultracite**, a zero-config Biome preset that enforces strict code quality standards through automated formatting and linting.
+This project uses **Ultracite**, a zero-config Biome preset for linting and formatting.
 
-## Quick Reference
+```sh
+pnpm lint             # Check for issues
+pnpm lint:fix         # Auto-fix issues
+pnpm check            # Run all checks (lint + typecheck)
+```
 
-- **Check for issues**: `pnpm lint`
-- **Auto-fix issues**: `pnpm lint:fix`
-- **Type checking**: `pnpm typecheck`
-- **Run all checks**: `pnpm check`
+**Key principles:**
+- Prefer `unknown` over `any`, use `as const` for literals
+- Use `for...of` over `.forEach()`, `async/await` over promise chains
+- Function components only, hooks at top level, correct dependency arrays
+- Early returns over nested conditionals
+- No `console.log`/`debugger` in production
 
-Biome provides extremely fast Rust-based linting and formatting. Most issues are automatically fixable.
-
----
-
-## Core Principles
-
-Write code that is **accessible, performant, type-safe, and maintainable**. Focus on clarity and explicit intent over brevity.
-
-### Type Safety & Explicitness
-
-- Use explicit types for function parameters and return values when they enhance clarity
-- Prefer `unknown` over `any` when the type is genuinely unknown
-- Use const assertions (`as const`) for immutable values and literal types
-- Leverage TypeScript's type narrowing instead of type assertions
-- Use meaningful variable names instead of magic numbers - extract constants with descriptive names
-
-### Modern JavaScript/TypeScript
-
-- Use arrow functions for callbacks and short functions
-- Prefer `for...of` loops over `.forEach()` and indexed `for` loops
-- Use optional chaining (`?.`) and nullish coalescing (`??`) for safer property access
-- Prefer template literals over string concatenation
-- Use destructuring for object and array assignments
-- Use `const` by default, `let` only when reassignment is needed, never `var`
-
-### Async & Promises
-
-- Always `await` promises in async functions - don't forget to use the return value
-- Use `async/await` syntax instead of promise chains for better readability
-- Handle errors appropriately in async code with try-catch blocks
-- Don't use async functions as Promise executors
-
-### React & JSX
-
-- Use function components over class components
-- Call hooks at the top level only, never conditionally
-- Specify all dependencies in hook dependency arrays correctly
-- Use the `key` prop for elements in iterables (prefer unique IDs over array indices)
-- Nest children between opening and closing tags instead of passing as props
-- Don't define components inside other components
-- Use semantic HTML and ARIA attributes for accessibility
-
-### Error Handling & Debugging
-
-- Remove `console.log`, `debugger`, and `alert` statements from production code
-- Throw `Error` objects with descriptive messages, not strings or other values
-- Prefer early returns over nested conditionals for error cases
-
-### Code Organization
-
-- Keep functions focused and under reasonable cognitive complexity limits
-- Extract complex conditions into well-named boolean variables
-- Use early returns to reduce nesting
-- Prefer simple conditionals over nested ternary operators
-
-### Security
-
-- Add `rel="noopener"` when using `target="_blank"` on links
-- Avoid `dangerouslySetInnerHTML` unless absolutely necessary
-- Don't use `eval()` or assign directly to `document.cookie`
-- Validate and sanitize user input
-
-### Performance
-
-- Avoid spread syntax in accumulators within loops
-- Use top-level regex literals instead of creating them in loops
-- Prefer specific imports over namespace imports
-
----
-
-## Testing
-
-- Write assertions inside `it()` or `test()` blocks
-- Avoid done callbacks in async tests - use async/await instead
-- Don't use `.only` or `.skip` in committed code
-
----
-
-Most formatting and common issues are automatically fixed by Biome. Run `pnpm lint:fix` before committing.
+Most issues are auto-fixable. Run `pnpm lint:fix` before committing.
