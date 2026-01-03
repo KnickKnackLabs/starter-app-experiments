@@ -106,8 +106,8 @@ export const pipelineStoryMeta: Meta<PipelineStoryArgs> = {
   },
   args: {
     nodeAppearance: "minimal",
-    portShape: "circle",
-    portOffsetPreset: "Deep Inside (8px)",
+    portShape: "square",
+    portOffsetPreset: "On Edge (0px)",
   },
   decorators: [nodeSettingsDecoratorFn],
 };

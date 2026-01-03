@@ -343,6 +343,7 @@ const conditionalNodes: Node<BlackboxNodeData>[] = [
 export const ConditionalBranch: Story = {
   args: {
     initialNodes: conditionalNodes,
+
     initialEdges: [
       {
         id: "e1",
@@ -359,6 +360,8 @@ export const ConditionalBranch: Story = {
         targetHandle: "response",
       },
     ],
+
+    portShape: "square",
   },
   parameters: {
     docs: {

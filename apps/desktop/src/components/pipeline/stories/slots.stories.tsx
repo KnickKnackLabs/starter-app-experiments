@@ -289,7 +289,7 @@ export const NestedComposition: Story = {
       },
     ],
 
-    nodeAppearance: "borderless"
+    nodeAppearance: "borderless",
   },
   parameters: {
     docs: {
