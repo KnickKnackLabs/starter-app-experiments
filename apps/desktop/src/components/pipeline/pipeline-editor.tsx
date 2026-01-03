@@ -96,6 +96,8 @@ type PipelineEditorProps = {
    * Default: 20
    */
   magneticReleaseDistance?: number;
+  /** Default zoom level. Default: 1 */
+  defaultZoom?: number;
 };
 
 export function PipelineEditor({
@@ -103,6 +105,7 @@ export function PipelineEditor({
   initialEdges = [],
   snapGrid = [8, 8],
   magneticReleaseDistance = 20,
+  defaultZoom = 1,
 }: PipelineEditorProps) {
   const [nodes, setNodes] = useState<Node<BlackboxNodeData>[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
@@ -396,6 +399,7 @@ export function PipelineEditor({
         <ReactFlow
           edges={edges}
           fitView
+          fitViewOptions={{ maxZoom: defaultZoom }}
           isValidConnection={isValidConnection}
           nodes={visibleNodes}
           nodeTypes={nodeTypes}

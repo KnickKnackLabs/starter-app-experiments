@@ -38,6 +38,9 @@ export type NodeSlot = {
   filledBy?: string;
 };
 
+/** Shape of port handles */
+export type PortShape = "circle" | "diamond" | "square" | "triangle";
+
 /** Data stored in a blackbox node */
 export interface BlackboxNodeData extends Record<string, unknown> {
   label: string;
@@ -45,6 +48,10 @@ export interface BlackboxNodeData extends Record<string, unknown> {
   outputs: Port[];
   /** Slots that accept other nodes as arguments */
   slots?: NodeSlot[];
+  /** Shape of port handles. Default: "circle" */
+  portShape?: PortShape;
+  /** Horizontal offset of port centers from node edge in pixels. 0 = centered on edge, negative = outward, positive = inward. Default: -4 (slightly outside) */
+  portOffset?: number;
 }
 
 /**

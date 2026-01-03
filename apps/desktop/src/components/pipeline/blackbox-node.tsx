@@ -1,3 +1,8 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@ui/components/ui/tooltip";
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { memo } from "react";
 import { usePipelineContext } from "./pipeline-context";
@@ -5,8 +10,35 @@ import {
   type BlackboxNodeData,
   type NodeSlot,
   type Port,
+  type PortShape,
   portTypeColors,
 } from "./types";
+
+type PortShapeStyle = {
+  borderRadius: string;
+  transform?: string;
+  clipPath?: string;
+};
+
+function getPortShapeStyle(shape: PortShape, isInput: boolean): PortShapeStyle {
+  switch (shape) {
+    case "circle":
+      return { borderRadius: "50%" };
+    case "diamond":
+      return { borderRadius: "2px", transform: "rotate(45deg)" };
+    case "square":
+      return { borderRadius: "2px" };
+    case "triangle":
+      return {
+        borderRadius: "0",
+        clipPath: isInput
+          ? "polygon(100% 0%, 0% 50%, 100% 100%)" // Points left (into node)
+          : "polygon(0% 0%, 100% 50%, 0% 100%)", // Points right (out of node)
+      };
+    default:
+      return { borderRadius: "50%" };
+  }
+}
 
 function PortHandle({
   port,
@@ -14,40 +46,57 @@ function PortHandle({
   position,
   index,
   total,
+  shape = "circle",
+  horizontalOffset = -4,
 }: {
   port: Port;
   type: "source" | "target";
   position: Position;
   index: number;
   total: number;
+  shape?: PortShape;
+  horizontalOffset?: number;
 }) {
   const offset = total === 1 ? 50 : 20 + (index * 60) / Math.max(total - 1, 1);
+  const shapeStyle = getPortShapeStyle(shape, type === "target");
+  const isDiamond = shape === "diamond";
+
+  // Port is 8px wide, so center it by default (-4px puts center at edge)
+  const adjustedOffset = horizontalOffset - 4;
 
   return (
     <div
-      className="absolute flex items-center gap-1"
+      className="absolute"
       style={{
-        [position === Position.Left ? "left" : "right"]: -8,
+        [position === Position.Left ? "left" : "right"]: adjustedOffset,
         top: `${offset}%`,
         transform: "translateY(-50%)",
-        flexDirection: position === Position.Left ? "row" : "row-reverse",
       }}
     >
-      <Handle
-        className="!relative !h-3 !w-3 !transform-none !rounded-full !border-2 !border-background"
-        id={port.id}
-        position={position}
-        style={{ backgroundColor: portTypeColors[port.type] }}
-        type={type}
-      />
-      <span
-        className="whitespace-nowrap text-[10px] text-muted-foreground"
-        style={{
-          [position === Position.Left ? "marginLeft" : "marginRight"]: 4,
-        }}
-      >
-        {port.label}
-      </span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {/* Wrapper div for diamond rotation since Handle's !transform-none blocks inline transform */}
+          <div style={{ transform: isDiamond ? "rotate(45deg)" : "none" }}>
+            <Handle
+              className="!relative !h-2 !w-2 !transform-none !border !border-background"
+              id={port.id}
+              position={position}
+              style={{
+                backgroundColor: portTypeColors[port.type],
+                borderRadius: shapeStyle.borderRadius,
+                clipPath: shapeStyle.clipPath,
+              }}
+              type={type}
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side={position === Position.Left ? "left" : "right"}>
+          {port.label}{" "}
+          <span style={{ color: portTypeColors[port.type] }}>
+            ({port.type})
+          </span>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }
@@ -212,10 +261,12 @@ function BlackboxNodeComponent({ id, data, selected }: NodeProps) {
       {/* Input handles (left side) */}
       {nodeData.inputs.map((port, i) => (
         <PortHandle
+          horizontalOffset={nodeData.portOffset}
           index={i}
           key={port.id}
           port={port}
           position={Position.Left}
+          shape={nodeData.portShape}
           total={nodeData.inputs.length}
           type="target"
         />
@@ -224,10 +275,12 @@ function BlackboxNodeComponent({ id, data, selected }: NodeProps) {
       {/* Output handles (right side) */}
       {nodeData.outputs.map((port, i) => (
         <PortHandle
+          horizontalOffset={nodeData.portOffset}
           index={i}
           key={port.id}
           port={port}
           position={Position.Right}
+          shape={nodeData.portShape}
           total={nodeData.outputs.length}
           type="source"
         />
