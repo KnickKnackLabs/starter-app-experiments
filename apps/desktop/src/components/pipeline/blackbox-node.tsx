@@ -86,7 +86,9 @@ function FilledSlot({
   parentNodeId: string;
   onSlotClear?: (parentNodeId: string, slotId: string) => void;
 }) {
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     onSlotClear?.(parentNodeId, slot.id);
   };
 

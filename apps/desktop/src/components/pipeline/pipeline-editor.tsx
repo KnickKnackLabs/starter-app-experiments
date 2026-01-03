@@ -91,22 +91,38 @@ export function PipelineEditor({
   // Handle removing a node from a slot
   const handleSlotClear = useCallback(
     (parentNodeId: string, slotId: string) => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id !== parentNodeId || !node.data.slots) {
-            return node;
+      setNodes((nds) => {
+        // Find the node being ejected
+        const parentNode = nds.find((n) => n.id === parentNodeId);
+        const ejectedNodeId = parentNode?.data.slots?.find(
+          (s) => s.id === slotId
+        )?.filledBy;
+
+        return nds.map((node) => {
+          // Deselect the parent node and clear the slot
+          if (node.id === parentNodeId) {
+            return {
+              ...node,
+              selected: false,
+              data: {
+                ...node.data,
+                slots: node.data.slots?.map((slot) =>
+                  slot.id === slotId ? { ...slot, filledBy: undefined } : slot
+                ),
+              },
+            };
           }
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              slots: node.data.slots.map((slot) =>
-                slot.id === slotId ? { ...slot, filledBy: undefined } : slot
-              ),
-            },
-          };
-        })
-      );
+          // Select the ejected node so user can immediately drag it
+          if (node.id === ejectedNodeId) {
+            return { ...node, selected: true };
+          }
+          // Deselect any other nodes
+          if (node.selected) {
+            return { ...node, selected: false };
+          }
+          return node;
+        });
+      });
     },
     []
   );
