@@ -4,6 +4,8 @@
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
+      "@starter/core": ["../../packages/core/src/index.ts"],
+      "@starter/core/*": ["../../packages/core/src/*"],
       "@core/*": ["../../packages/core/src/*"],
       "@/*": ["./*"]
     }
