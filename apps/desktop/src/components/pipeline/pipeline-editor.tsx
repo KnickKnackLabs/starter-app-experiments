@@ -13,9 +13,10 @@ import {
   type OnNodeDrag,
   type OnNodesChange,
   ReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import { BlackboxNode } from "./blackbox-node";
 import { type DragState, PipelineContext } from "./pipeline-context";
 import { type BlackboxNodeData, canFillSlot } from "./types";
@@ -107,6 +108,7 @@ export function PipelineEditor({
   magneticReleaseDistance = 20,
   defaultZoom = 1,
 }: PipelineEditorProps) {
+  const flowId = useId();
   const [nodes, setNodes] = useState<Node<BlackboxNodeData>[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const [dragState, setDragState] = useState<DragState>(null);
@@ -395,28 +397,31 @@ export function PipelineEditor({
 
   return (
     <PipelineContext.Provider value={contextValue}>
-      <div className="h-full w-full">
-        <ReactFlow
-          edges={edges}
-          fitView
-          fitViewOptions={{ maxZoom: defaultZoom }}
-          isValidConnection={isValidConnection}
-          nodes={visibleNodes}
-          nodeTypes={nodeTypes}
-          onConnect={onConnect}
-          onEdgesChange={onEdgesChange}
-          onNodeDrag={onNodeDrag}
-          onNodeDragStart={onNodeDragStart}
-          onNodeDragStop={onNodeDragStop}
-          onNodesChange={onNodesChange}
-          snapGrid={snapGrid}
-          snapToGrid
-        >
-          <Background gap={16} size={1} />
-          <Controls />
-          <MiniMap />
-        </ReactFlow>
-      </div>
+      <ReactFlowProvider>
+        <div className="h-full w-full">
+          <ReactFlow
+            edges={edges}
+            fitView
+            fitViewOptions={{ maxZoom: defaultZoom }}
+            id={flowId}
+            isValidConnection={isValidConnection}
+            nodes={visibleNodes}
+            nodeTypes={nodeTypes}
+            onConnect={onConnect}
+            onEdgesChange={onEdgesChange}
+            onNodeDrag={onNodeDrag}
+            onNodeDragStart={onNodeDragStart}
+            onNodeDragStop={onNodeDragStop}
+            onNodesChange={onNodesChange}
+            snapGrid={snapGrid}
+            snapToGrid
+          >
+            <Background gap={16} size={1} />
+            <Controls />
+            <MiniMap />
+          </ReactFlow>
+        </div>
+      </ReactFlowProvider>
     </PipelineContext.Provider>
   );
 }
