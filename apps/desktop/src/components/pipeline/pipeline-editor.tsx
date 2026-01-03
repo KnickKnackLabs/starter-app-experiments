@@ -14,13 +14,9 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { BlackboxNode } from "./blackbox-node";
 import type { BlackboxNodeData } from "./types";
-
-const nodeTypes = {
-  blackbox: BlackboxNode,
-};
 
 interface PipelineEditorProps {
   initialNodes?: Node<BlackboxNodeData>[];
@@ -33,6 +29,45 @@ export function PipelineEditor({
 }: PipelineEditorProps) {
   const [nodes, setNodes] = useState<Node<BlackboxNodeData>[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+
+  // Create a lookup function for node data (used by slots to render nested nodes)
+  const getNodeData = useCallback(
+    (nodeId: string): BlackboxNodeData | undefined =>
+      nodes.find((n) => n.id === nodeId)?.data,
+    [nodes]
+  );
+
+  // Find all node IDs that are slotted inside other nodes
+  const slottedNodeIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const node of nodes) {
+      if (node.data.slots) {
+        for (const slot of node.data.slots) {
+          if (slot.filledBy) {
+            ids.add(slot.filledBy);
+          }
+        }
+      }
+    }
+    return ids;
+  }, [nodes]);
+
+  // Filter out slotted nodes from canvas rendering
+  const visibleNodes = useMemo(
+    () => nodes.filter((n) => !slottedNodeIds.has(n.id)),
+    [nodes, slottedNodeIds]
+  );
+
+  // Create nodeTypes with getNodeData injected
+  // We need to create a wrapper component that passes getNodeData
+  const nodeTypes = useMemo(
+    () => ({
+      blackbox: (props: Parameters<typeof BlackboxNode>[0]) => (
+        <BlackboxNode {...props} getNodeData={getNodeData} />
+      ),
+    }),
+    [getNodeData]
+  );
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) =>
@@ -85,7 +120,7 @@ export function PipelineEditor({
         edges={edges}
         fitView
         isValidConnection={isValidConnection}
-        nodes={nodes}
+        nodes={visibleNodes}
         nodeTypes={nodeTypes}
         onConnect={onConnect}
         onEdgesChange={onEdgesChange}
