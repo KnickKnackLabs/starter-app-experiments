@@ -1,5 +1,6 @@
 import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { memo } from "react";
+import { usePipelineContext } from "./pipeline-context";
 import {
   type BlackboxNodeData,
   type NodeSlot,
@@ -57,7 +58,7 @@ function EmptySlot({ slot }: { slot: NodeSlot }) {
   const outputTypes = slot.accepts.outputs.map((p) => p.type).join(", ");
 
   return (
-    <div className="my-2 rounded border-2 border-muted-foreground/30 border-dashed bg-muted/20 p-3">
+    <div className="my-2 rounded border-2 border-muted-foreground/30 border-dashed bg-muted/20 p-3 transition-colors">
       <div className="mb-1 text-center text-muted-foreground text-xs">
         {slot.label}
       </div>
@@ -65,6 +66,9 @@ function EmptySlot({ slot }: { slot: NodeSlot }) {
         <span>({inputTypes || "∅"})</span>
         <span>→</span>
         <span>({outputTypes || "∅"})</span>
+      </div>
+      <div className="mt-1 text-center text-[9px] text-muted-foreground/40">
+        drag a node here
       </div>
     </div>
   );
@@ -74,12 +78,25 @@ function EmptySlot({ slot }: { slot: NodeSlot }) {
 function FilledSlot({
   slot,
   slottedNodeData,
+  parentNodeId,
+  onSlotClear,
 }: {
   slot: NodeSlot;
   slottedNodeData: BlackboxNodeData;
+  parentNodeId: string;
+  onSlotClear?: (parentNodeId: string, slotId: string) => void;
 }) {
+  const handleDoubleClick = () => {
+    onSlotClear?.(parentNodeId, slot.id);
+  };
+
   return (
-    <div className="my-2 rounded border-2 border-primary/30 bg-primary/5 p-2">
+    <button
+      className="group my-2 block w-full rounded border-2 border-primary/30 bg-primary/5 p-2 text-left"
+      onDoubleClick={handleDoubleClick}
+      title="Double-click to remove"
+      type="button"
+    >
       <div className="rounded border border-border bg-card px-3 py-2 shadow-sm">
         <div className="text-center font-medium text-xs">
           {slottedNodeData.label}
@@ -109,20 +126,12 @@ function FilledSlot({
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
-export interface BlackboxNodeProps extends NodeProps {
-  /** For rendering filled slots, we need access to other nodes' data */
-  getNodeData?: (nodeId: string) => BlackboxNodeData | undefined;
-}
-
-function BlackboxNodeComponent({
-  data,
-  selected,
-  getNodeData,
-}: BlackboxNodeProps) {
+function BlackboxNodeComponent({ id, data, selected }: NodeProps) {
+  const { getNodeData, onSlotClear } = usePipelineContext();
   const nodeData = data as BlackboxNodeData;
   const hasSlots = nodeData.slots && nodeData.slots.length > 0;
 
@@ -134,16 +143,18 @@ function BlackboxNodeComponent({
       <div className="text-center font-medium text-sm">{nodeData.label}</div>
 
       {/* Slots */}
-      {hasSlots && (
+      {hasSlots ? (
         <div className="mt-2">
           {nodeData.slots?.map((slot) => {
             const slottedNodeData = slot.filledBy
-              ? getNodeData?.(slot.filledBy)
-              : undefined;
+              ? getNodeData(slot.filledBy)
+              : null;
 
             return slottedNodeData ? (
               <FilledSlot
                 key={slot.id}
+                onSlotClear={onSlotClear}
+                parentNodeId={id}
                 slot={slot}
                 slottedNodeData={slottedNodeData}
               />
@@ -152,7 +163,7 @@ function BlackboxNodeComponent({
             );
           })}
         </div>
-      )}
+      ) : null}
 
       {/* Input handles (left side) */}
       {nodeData.inputs.map((port, i) => (

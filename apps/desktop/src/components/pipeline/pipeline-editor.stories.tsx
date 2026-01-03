@@ -10,9 +10,9 @@ const meta: Meta<typeof PipelineEditor> = {
     layout: "fullscreen",
   },
   decorators: [
-    (Story) => (
+    (StoryComponent) => (
       <div style={{ width: "100vw", height: "100vh" }}>
-        <Story />
+        <StoryComponent />
       </div>
     ),
   ],
@@ -704,6 +704,87 @@ export const FilterWithPredicate: Story = {
       description: {
         story:
           "A Filter node with a predicate slot. The 'Is Even?' node returns a boolean, determining which items to keep.",
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Interactive Drag-and-Drop Demo
+// ============================================================================
+
+const dragDropNodes: Node<BlackboxNodeData>[] = [
+  // A Map node with an empty slot
+  {
+    id: "map-node",
+    type: "blackbox",
+    position: { x: 300, y: 100 },
+    data: {
+      label: "Map",
+      inputs: [
+        { id: "items", label: "items", type: "array", itemType: "string" },
+      ],
+      outputs: [
+        { id: "result", label: "result", type: "array", itemType: "string" },
+      ],
+      slots: [
+        {
+          id: "transformer",
+          label: "transform each",
+          accepts: {
+            inputs: [{ id: "item", label: "item", type: "string" }],
+            outputs: [{ id: "result", label: "result", type: "string" }],
+          },
+          // Empty - no filledBy
+        },
+      ],
+    },
+  },
+  // Compatible node - can be dragged into the slot
+  {
+    id: "uppercase",
+    type: "blackbox",
+    position: { x: 50, y: 50 },
+    data: {
+      label: "Uppercase",
+      inputs: [{ id: "str", label: "str", type: "string" }],
+      outputs: [{ id: "result", label: "result", type: "string" }],
+    },
+  },
+  // Compatible node - can also be dragged into the slot
+  {
+    id: "trim",
+    type: "blackbox",
+    position: { x: 50, y: 150 },
+    data: {
+      label: "Trim",
+      inputs: [{ id: "str", label: "str", type: "string" }],
+      outputs: [{ id: "result", label: "result", type: "string" }],
+    },
+  },
+  // Incompatible node - number->number won't fit string->string slot
+  {
+    id: "double",
+    type: "blackbox",
+    position: { x: 50, y: 250 },
+    data: {
+      label: "Double",
+      inputs: [{ id: "n", label: "n", type: "number" }],
+      outputs: [{ id: "result", label: "result", type: "number" }],
+    },
+  },
+];
+
+export const DragAndDropDemo: Story = {
+  args: {
+    initialNodes: dragDropNodes,
+    initialEdges: [],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "**Interactive demo!** Drag 'Uppercase' or 'Trim' into the Map's slot. 'Double' won't work (wrong types). Double-click a filled slot to remove it.",
       },
     },
   },

@@ -8,38 +8,38 @@ export type PortType =
   | "any";
 
 /** Port definition for node inputs/outputs */
-export interface Port {
+export type Port = {
   id: string;
   label: string;
   type: PortType;
   /** For array ports, the type of items in the array */
   itemType?: PortType;
-}
+};
 
 /**
  * Describes the expected signature of a node that can fill a slot.
  * Think of it as a function type: (inputs) => outputs
  */
-export interface NodeSignature {
+export type NodeSignature = {
   inputs: Port[];
   outputs: Port[];
-}
+};
 
 /**
  * A slot is a "hole" in a node that accepts another node as an argument.
  * Unlike ports (which connect data), slots enable node composition.
  */
-export interface NodeSlot {
+export type NodeSlot = {
   id: string;
   label: string;
   /** The signature that any node filling this slot must match */
   accepts: NodeSignature;
   /** ID of the node currently filling this slot (if any) */
   filledBy?: string;
-}
+};
 
 /** Data stored in a blackbox node */
-export interface BlackboxNodeData {
+export interface BlackboxNodeData extends Record<string, unknown> {
   label: string;
   inputs: Port[];
   outputs: Port[];
@@ -63,7 +63,9 @@ export function canFillSlot(
       (p) =>
         p.type === required.type || p.type === "any" || required.type === "any"
     );
-    if (!matching) return false;
+    if (!matching) {
+      return false;
+    }
   }
 
   // Check that node produces all required outputs
@@ -72,7 +74,9 @@ export function canFillSlot(
       (p) =>
         p.type === required.type || p.type === "any" || required.type === "any"
     );
-    if (!matching) return false;
+    if (!matching) {
+      return false;
+    }
   }
 
   return true;
