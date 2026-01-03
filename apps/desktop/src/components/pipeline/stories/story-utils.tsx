@@ -13,19 +13,31 @@ export const portOffsetPresets = {
 
 export type PortOffsetPreset = keyof typeof portOffsetPresets;
 
+// Node appearance options
+export const nodeAppearanceOptions = [
+  "default",
+  "sharp",
+  "minimal",
+  "borderless",
+] as const;
+export type NodeAppearanceOption = (typeof nodeAppearanceOptions)[number];
+
 // Extended args type for our controls
 export type PipelineStoryArgs = {
   initialNodes: Node<BlackboxNodeData>[];
   initialEdges: Edge[];
   portShape: PortShape;
   portOffsetPreset: PortOffsetPreset;
+  nodeAppearance: NodeAppearanceOption;
 };
 
-// Apply port settings to all nodes
-export const applyPortSettings = (
+// Apply visual settings to all nodes
+// If a node already has an appearance set, preserve it (useful for comparison stories)
+export const applyNodeSettings = (
   nodes: Node<BlackboxNodeData>[],
   shape: PortShape,
-  offset: number
+  offset: number,
+  appearance: NodeAppearanceOption
 ): Node<BlackboxNodeData>[] =>
   nodes.map((node) => ({
     ...node,
@@ -33,21 +45,29 @@ export const applyPortSettings = (
       ...node.data,
       portShape: shape,
       portOffset: offset,
+      // Preserve existing appearance if set, otherwise use the control value
+      appearance: node.data.appearance ?? appearance,
     },
   }));
 
-// Shared decorator that applies port settings
-const portAppearanceDecoratorFn: Decorator<PipelineStoryArgs> = (
+// Shared decorator that applies all node settings
+const nodeSettingsDecoratorFn: Decorator<PipelineStoryArgs> = (
   _StoryComponent,
   context
 ) => {
-  const { portShape, portOffsetPreset, initialNodes, initialEdges } =
-    context.args;
+  const {
+    portShape,
+    portOffsetPreset,
+    nodeAppearance,
+    initialNodes,
+    initialEdges,
+  } = context.args;
   const portOffset = portOffsetPresets[portOffsetPreset];
-  const modifiedNodes = applyPortSettings(
+  const modifiedNodes = applyNodeSettings(
     initialNodes ?? [],
     portShape,
-    portOffset
+    portOffset,
+    nodeAppearance
   );
 
   return (
@@ -65,6 +85,12 @@ export const pipelineStoryMeta: Meta<PipelineStoryArgs> = {
   component: PipelineEditor,
   parameters: { layout: "fullscreen" },
   argTypes: {
+    nodeAppearance: {
+      control: "select",
+      options: nodeAppearanceOptions,
+      description: "Node visual style variant",
+      table: { category: "Node Appearance" },
+    },
     portShape: {
       control: "select",
       options: ["circle", "diamond", "square", "triangle"] as PortShape[],
@@ -79,8 +105,9 @@ export const pipelineStoryMeta: Meta<PipelineStoryArgs> = {
     },
   },
   args: {
+    nodeAppearance: "minimal",
     portShape: "circle",
     portOffsetPreset: "Deep Inside (8px)",
   },
-  decorators: [portAppearanceDecoratorFn],
+  decorators: [nodeSettingsDecoratorFn],
 };

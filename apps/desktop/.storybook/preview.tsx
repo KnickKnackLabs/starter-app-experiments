@@ -5,16 +5,20 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
 import "../src/styles-storybook.css";
 
-// Decorator that syncs Storybook locale with i18n
-const withI18n = (
+// Decorator that syncs Storybook locale and theme
+const withI18nAndTheme = (
   Story: React.ComponentType,
-  context: { globals: { locale?: string } }
+  context: { globals: { locale?: string; theme?: string } }
 ) => {
-  const { locale = "en" } = context.globals;
+  const { locale = "en", theme = "light" } = context.globals;
 
   useEffect(() => {
     i18n.changeLanguage(locale);
   }, [locale]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   const direction = isRtl(locale) ? "rtl" : "ltr";
 
@@ -30,8 +34,23 @@ const withI18n = (
 };
 
 const preview: Preview = {
+  globalTypes: {
+    theme: {
+      description: "Color theme",
+      toolbar: {
+        title: "Theme",
+        icon: "paintbrush",
+        items: [
+          { value: "light", title: "Light", icon: "sun" },
+          { value: "dark", title: "Dark", icon: "moon" },
+        ],
+        dynamicTitle: true,
+      },
+    },
+  },
   initialGlobals: {
     locale: "en",
+    theme: "light",
     locales: {
       en: { icon: "🇺🇸", title: "English", right: "EN" },
       es: { icon: "🇪🇸", title: "Español", right: "ES" },
@@ -54,7 +73,7 @@ const preview: Preview = {
     },
   },
 
-  decorators: [withI18n],
+  decorators: [withI18nAndTheme],
 };
 
 export default preview;

@@ -82,6 +82,7 @@ export const Default: Story = {
   args: {
     initialNodes: sampleNodes,
     initialEdges: sampleEdges,
+    nodeAppearance: "minimal",
   },
 };
 

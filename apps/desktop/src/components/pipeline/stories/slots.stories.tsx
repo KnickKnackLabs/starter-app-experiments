@@ -64,6 +64,7 @@ const mapWithEmptySlot: Node<BlackboxNodeData>[] = [
 export const EmptySlot: Story = {
   args: {
     initialNodes: mapWithEmptySlot,
+
     initialEdges: [
       {
         id: "e1",
@@ -80,6 +81,9 @@ export const EmptySlot: Story = {
         targetHandle: "data",
       },
     ],
+
+    nodeAppearance: "minimal",
+    portShape: "square",
   },
   parameters: {
     docs: {

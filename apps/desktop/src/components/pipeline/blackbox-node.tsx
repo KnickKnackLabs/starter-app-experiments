@@ -20,6 +20,50 @@ type PortShapeStyle = {
   clipPath?: string;
 };
 
+type NodeAppearanceStyles = {
+  container: string;
+  selected: string;
+  unselected: string;
+};
+
+function getNodeAppearanceStyles(
+  appearance: "default" | "sharp" | "minimal" | "borderless" = "minimal"
+): NodeAppearanceStyles {
+  // Use muted background for subtle contrast against white/dark grid
+  // bg-muted is slightly off-white in light mode, slightly lighter in dark mode
+  // Selection uses a consistent thin primary/50 border across all variants
+  switch (appearance) {
+    case "sharp":
+      // Sharp corners, thin border, subtle shadow
+      return {
+        container: "rounded-sm border bg-muted shadow-sm",
+        selected: "border-primary/50",
+        unselected: "border-border",
+      };
+    case "minimal":
+      // Square corners, thin border, no shadow
+      return {
+        container: "rounded-none border bg-muted",
+        selected: "border-primary/50",
+        unselected: "border-border",
+      };
+    case "borderless":
+      // No border when unselected, thin border when selected
+      return {
+        container: "rounded-md border bg-muted shadow-md",
+        selected: "border-primary/50",
+        unselected: "border-transparent",
+      };
+    default:
+      // Original: rounded, thin border, medium shadow
+      return {
+        container: "rounded-lg border bg-muted shadow-md",
+        selected: "border-primary/50",
+        unselected: "border-border",
+      };
+  }
+}
+
 function getPortShapeStyle(shape: PortShape, isInput: boolean): PortShapeStyle {
   switch (shape) {
     case "circle":
@@ -227,10 +271,11 @@ function BlackboxNodeComponent({ id, data, selected }: NodeProps) {
   const { getNodeData, onSlotClear } = usePipelineContext();
   const nodeData = data as BlackboxNodeData;
   const hasSlots = nodeData.slots && nodeData.slots.length > 0;
+  const appearanceStyles = getNodeAppearanceStyles(nodeData.appearance);
 
   return (
     <div
-      className={`relative min-w-[120px] rounded-lg border-2 bg-card px-4 py-3 shadow-md ${selected ? "border-primary" : "border-border"}`}
+      className={`relative min-w-[120px] px-4 py-3 ${appearanceStyles.container} ${selected ? appearanceStyles.selected : appearanceStyles.unselected}`}
     >
       {/* Node label */}
       <div className="text-center font-medium text-sm">{nodeData.label}</div>
