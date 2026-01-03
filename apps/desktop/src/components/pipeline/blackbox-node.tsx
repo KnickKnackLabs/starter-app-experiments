@@ -53,12 +53,54 @@ function PortHandle({
 }
 
 /** Renders an empty slot waiting for a node */
-function EmptySlot({ slot }: { slot: NodeSlot }) {
+function EmptySlot({
+  slot,
+  parentNodeId,
+}: {
+  slot: NodeSlot;
+  parentNodeId: string;
+}) {
+  const { dragState, registerSlotRef } = usePipelineContext();
   const inputTypes = slot.accepts.inputs.map((p) => p.type).join(", ");
   const outputTypes = slot.accepts.outputs.map((p) => p.type).join(", ");
 
+  // Register this slot's DOM element for overlap detection
+  const slotKey = `${parentNodeId}:${slot.id}`;
+
+  // Check if the currently dragged node is compatible with this slot
+  const isCompatible = dragState?.compatibleSlots.some(
+    (cs) => cs.parentNodeId === parentNodeId && cs.slot.id === slot.id
+  );
+
+  // Check if the dragged node is overlapping this specific slot
+  const isOverlapping = dragState?.overlappingSlotKeys.has(slotKey);
+
+  // Only show incompatible state when overlapping
+  const showIncompatible = isOverlapping && !isCompatible;
+
+  let borderClass = "border-muted-foreground/30 border-dashed";
+  let bgClass = "bg-muted/20";
+  let hintText = "drag a node here";
+
+  if (isCompatible && isOverlapping) {
+    borderClass = "border-primary border-solid";
+    bgClass = "bg-primary/10";
+    hintText = "drop here!";
+  } else if (isCompatible) {
+    // Compatible but not overlapping yet - subtle highlight
+    borderClass = "border-primary/50 border-dashed";
+    bgClass = "bg-primary/5";
+  } else if (showIncompatible) {
+    borderClass = "border-destructive/50 border-dashed";
+    bgClass = "bg-destructive/5";
+    hintText = "incompatible";
+  }
+
   return (
-    <div className="my-2 rounded border-2 border-muted-foreground/30 border-dashed bg-muted/20 p-3 transition-colors">
+    <div
+      className={`my-2 rounded border-2 ${borderClass} ${bgClass} p-3 transition-colors`}
+      ref={(el) => registerSlotRef(parentNodeId, slot.id, el)}
+    >
       <div className="mb-1 text-center text-muted-foreground text-xs">
         {slot.label}
       </div>
@@ -68,7 +110,7 @@ function EmptySlot({ slot }: { slot: NodeSlot }) {
         <span>({outputTypes || "∅"})</span>
       </div>
       <div className="mt-1 text-center text-[9px] text-muted-foreground/40">
-        drag a node here
+        {hintText}
       </div>
     </div>
   );
@@ -161,7 +203,7 @@ function BlackboxNodeComponent({ id, data, selected }: NodeProps) {
                 slottedNodeData={slottedNodeData}
               />
             ) : (
-              <EmptySlot key={slot.id} slot={slot} />
+              <EmptySlot key={slot.id} parentNodeId={id} slot={slot} />
             );
           })}
         </div>

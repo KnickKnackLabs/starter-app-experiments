@@ -15,9 +15,9 @@ import {
   ReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { BlackboxNode } from "./blackbox-node";
-import { PipelineContext } from "./pipeline-context";
+import { type DragState, PipelineContext } from "./pipeline-context";
 import { type BlackboxNodeData, canFillSlot } from "./types";
 
 // Define nodeTypes outside component to avoid React Flow warning
@@ -36,6 +36,24 @@ export function PipelineEditor({
 }: PipelineEditorProps) {
   const [nodes, setNodes] = useState<Node<BlackboxNodeData>[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [dragState, setDragState] = useState<DragState>(null);
+
+  // Store refs to slot DOM elements for accurate overlap detection
+  const slotRefsMap = useRef<Map<string, HTMLElement>>(new Map());
+
+  const registerSlotRef = useCallback(
+    (parentNodeId: string, slotId: string, element: HTMLElement | null) => {
+      const key = `${parentNodeId}:${slotId}`;
+      if (element) {
+        slotRefsMap.current.set(key, element);
+      } else {
+        slotRefsMap.current.delete(key);
+      }
+    },
+    []
+  );
+
+  const getSlotRefs = useCallback(() => slotRefsMap.current, []);
 
   // Create a lookup function for node data (used by slots to render nested nodes)
   const getNodeData = useCallback(
@@ -132,8 +150,11 @@ export function PipelineEditor({
     () => ({
       getNodeData,
       onSlotClear: handleSlotClear,
+      dragState,
+      registerSlotRef,
+      getSlotRefs,
     }),
-    [getNodeData, handleSlotClear]
+    [getNodeData, handleSlotClear, dragState, registerSlotRef, getSlotRefs]
   );
 
   const onNodesChange: OnNodesChange = useCallback(
@@ -185,57 +206,115 @@ export function PipelineEditor({
     [nodes]
   );
 
-  // Check if a dragged node overlaps with a slotted node and can fill its slot
-  const onNodeDragStop: OnNodeDrag<Node<BlackboxNodeData>> = useCallback(
+  // When drag starts, compute which slots this node can fill
+  const onNodeDragStart: OnNodeDrag<Node<BlackboxNodeData>> = useCallback(
     (_event, draggedNode) => {
-      // Find nodes with empty slots
-      const nodesWithEmptySlots = nodes.filter(
-        (n) =>
-          n.id !== draggedNode.id &&
-          n.data.slots?.some((slot) => !slot.filledBy)
-      );
+      const compatibleSlots: NonNullable<DragState>["compatibleSlots"] = [];
 
-      // Check overlap with each potential target
-      for (const targetNode of nodesWithEmptySlots) {
-        // Simple bounding box overlap check
-        const draggedBounds = {
-          left: draggedNode.position.x,
-          right: draggedNode.position.x + 120, // approximate width
-          top: draggedNode.position.y,
-          bottom: draggedNode.position.y + 60, // approximate height
-        };
+      for (const node of nodes) {
+        if (node.id === draggedNode.id || !node.data.slots) {
+          continue;
+        }
 
-        const targetBounds = {
-          left: targetNode.position.x,
-          right: targetNode.position.x + 200, // nodes with slots are wider
-          top: targetNode.position.y,
-          bottom: targetNode.position.y + 120,
-        };
-
-        const overlaps =
-          draggedBounds.left < targetBounds.right &&
-          draggedBounds.right > targetBounds.left &&
-          draggedBounds.top < targetBounds.bottom &&
-          draggedBounds.bottom > targetBounds.top;
-
-        if (overlaps) {
-          // Find the first empty slot that accepts this node
-          const emptySlot = targetNode.data.slots?.find(
-            (slot) =>
-              !slot.filledBy &&
-              canFillSlot(
-                slot.accepts,
-                draggedNode.data.inputs,
-                draggedNode.data.outputs
-              )
-          );
-
-          if (emptySlot) {
-            handleSlotFill(targetNode.id, emptySlot.id, draggedNode.id);
-            return; // Only fill one slot
+        for (const slot of node.data.slots) {
+          if (
+            !slot.filledBy &&
+            canFillSlot(
+              slot.accepts,
+              draggedNode.data.inputs,
+              draggedNode.data.outputs
+            )
+          ) {
+            compatibleSlots.push({ parentNodeId: node.id, slot });
           }
         }
       }
+
+      setDragState({
+        nodeId: draggedNode.id,
+        nodeData: draggedNode.data,
+        compatibleSlots,
+        overlappingSlotKeys: new Set(),
+      });
+    },
+    [nodes]
+  );
+
+  // Update overlap state during drag using actual slot DOM positions
+  const onNodeDrag: OnNodeDrag<Node<BlackboxNodeData>> = useCallback(
+    (event, _draggedNode) => {
+      const overlappingSlotKeys = new Set<string>();
+
+      // Get mouse position from the event
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+
+      // Check each registered slot ref
+      for (const [key, element] of slotRefsMap.current) {
+        const rect = element.getBoundingClientRect();
+
+        // Check if mouse is within the slot bounds
+        if (
+          mouseX >= rect.left &&
+          mouseX <= rect.right &&
+          mouseY >= rect.top &&
+          mouseY <= rect.bottom
+        ) {
+          overlappingSlotKeys.add(key);
+        }
+      }
+
+      setDragState((prev) => {
+        if (!prev) {
+          return prev;
+        }
+        return { ...prev, overlappingSlotKeys };
+      });
+    },
+    []
+  );
+
+  // Check if a dragged node overlaps with a slot and can fill it
+  const onNodeDragStop: OnNodeDrag<Node<BlackboxNodeData>> = useCallback(
+    (event, draggedNode) => {
+      // Get the current overlapping slots before clearing drag state
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+
+      // Find the slot under the mouse
+      for (const [key, element] of slotRefsMap.current) {
+        const rect = element.getBoundingClientRect();
+
+        if (
+          mouseX >= rect.left &&
+          mouseX <= rect.right &&
+          mouseY >= rect.top &&
+          mouseY <= rect.bottom
+        ) {
+          // Parse the key to get parentNodeId and slotId
+          const [parentNodeId, slotId] = key.split(":");
+          const parentNode = nodes.find((n) => n.id === parentNodeId);
+          const slot = parentNode?.data.slots?.find((s) => s.id === slotId);
+
+          // Check if this slot can accept the dragged node
+          if (
+            slot &&
+            !slot.filledBy &&
+            canFillSlot(
+              slot.accepts,
+              draggedNode.data.inputs,
+              draggedNode.data.outputs
+            )
+          ) {
+            handleSlotFill(parentNodeId, slotId, draggedNode.id);
+            setDragState(null);
+            return;
+          }
+        }
+      }
+
+      // No valid slot found, just clear the drag state
+      setDragState(null);
     },
     [nodes, handleSlotFill]
   );
@@ -251,6 +330,8 @@ export function PipelineEditor({
           nodeTypes={nodeTypes}
           onConnect={onConnect}
           onEdgesChange={onEdgesChange}
+          onNodeDrag={onNodeDrag}
+          onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
           onNodesChange={onNodesChange}
           snapGrid={[16, 16]}
