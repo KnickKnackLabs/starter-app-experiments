@@ -16,7 +16,14 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { BlackboxNode } from "./blackbox-node";
 import { type DragState, PipelineContext } from "./pipeline-context";
 import { type BlackboxNodeData, canFillSlot } from "./types";
@@ -25,6 +32,68 @@ import { type BlackboxNodeData, canFillSlot } from "./types";
 const nodeTypes = {
   blackbox: BlackboxNode,
 };
+
+type KeyboardActions = {
+  deleteSelected: () => void;
+  copySelected: () => void;
+  copyWithConnections: () => void;
+  pasteNodes: () => void;
+  duplicateSelected: () => void;
+};
+
+/** Check if event target is an input field */
+function isInputTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
+  );
+}
+
+/** Get the shortcut key identifier from a keyboard event */
+function getShortcutKey(e: KeyboardEvent): string | null {
+  const isMod = e.metaKey || e.ctrlKey;
+  if (e.key === "Delete" || e.key === "Backspace") {
+    return "delete";
+  }
+  // Check Shift+C before plain C
+  if (isMod && e.shiftKey && (e.key === "c" || e.key === "C")) {
+    return "copyWithConnections";
+  }
+  if (isMod && e.key === "c") {
+    return "copy";
+  }
+  if (isMod && e.key === "v") {
+    return "paste";
+  }
+  if (e.shiftKey && e.key === "D") {
+    return "duplicate";
+  }
+  return null;
+}
+
+/** Create keyboard event handler for pipeline shortcuts */
+function createKeyboardHandler(actions: KeyboardActions) {
+  const actionMap: Record<string, () => void> = {
+    delete: actions.deleteSelected,
+    copy: actions.copySelected,
+    copyWithConnections: actions.copyWithConnections,
+    paste: actions.pasteNodes,
+    duplicate: actions.duplicateSelected,
+  };
+
+  return (e: KeyboardEvent) => {
+    if (isInputTarget(e.target)) {
+      return;
+    }
+
+    const key = getShortcutKey(e);
+    const action = key ? actionMap[key] : undefined;
+
+    if (action) {
+      e.preventDefault();
+      action();
+    }
+  };
+}
 
 /**
  * Calculate the distance from a point to the nearest edge of a rect.
@@ -394,6 +463,232 @@ export function PipelineEditor({
     },
     [nodes, handleSlotFill, dragState?.capturedBySlot]
   );
+
+  // Clipboard for copy/paste (stores nodes and optionally edges)
+  const clipboardRef = useRef<{
+    nodes: Node<BlackboxNodeData>[];
+    edges: Edge[];
+  }>({ nodes: [], edges: [] });
+
+  // Generate unique ID for pasted/duplicated nodes
+  const generateNodeId = useCallback(
+    () => `node-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    []
+  );
+
+  // Delete selected nodes and their edges
+  const deleteSelected = useCallback(() => {
+    const selectedNodeIds = new Set(
+      nodes.filter((n) => n.selected).map((n) => n.id)
+    );
+    if (selectedNodeIds.size === 0) {
+      return;
+    }
+
+    // Remove selected nodes
+    setNodes((nds) => nds.filter((n) => !selectedNodeIds.has(n.id)));
+    // Remove edges connected to deleted nodes
+    setEdges((eds) =>
+      eds.filter(
+        (e) => !(selectedNodeIds.has(e.source) || selectedNodeIds.has(e.target))
+      )
+    );
+  }, [nodes]);
+
+  // Collect a node and all its slotted nodes recursively
+  const collectNodeWithSlotted = useCallback(
+    (nodeId: string, collected: Set<string> = new Set()): string[] => {
+      if (collected.has(nodeId)) {
+        return [];
+      }
+      collected.add(nodeId);
+
+      const node = nodes.find((n) => n.id === nodeId);
+      if (!node) {
+        return [];
+      }
+
+      const ids = [nodeId];
+      for (const slot of node.data.slots ?? []) {
+        if (slot.filledBy) {
+          ids.push(...collectNodeWithSlotted(slot.filledBy, collected));
+        }
+      }
+      return ids;
+    },
+    [nodes]
+  );
+
+  // Copy selected nodes (and their slotted nodes) to clipboard
+  const copySelected = useCallback(() => {
+    const selected = nodes.filter((n) => n.selected);
+    if (selected.length === 0) {
+      return;
+    }
+
+    // Collect all node IDs including slotted nodes
+    const allIds = new Set<string>();
+    for (const node of selected) {
+      for (const id of collectNodeWithSlotted(node.id)) {
+        allIds.add(id);
+      }
+    }
+
+    // Copy nodes only (no edges)
+    clipboardRef.current = {
+      nodes: nodes.filter((n) => allIds.has(n.id)),
+      edges: [],
+    };
+  }, [nodes, collectNodeWithSlotted]);
+
+  // Copy selected nodes with their connections
+  const copyWithConnections = useCallback(() => {
+    const selected = nodes.filter((n) => n.selected);
+    if (selected.length === 0) {
+      return;
+    }
+
+    // Collect all node IDs including slotted nodes
+    const allIds = new Set<string>();
+    for (const node of selected) {
+      for (const id of collectNodeWithSlotted(node.id)) {
+        allIds.add(id);
+      }
+    }
+
+    // Copy nodes and all edges connected to them
+    const connectedEdges = edges.filter(
+      (e) => allIds.has(e.source) || allIds.has(e.target)
+    );
+
+    clipboardRef.current = {
+      nodes: nodes.filter((n) => allIds.has(n.id)),
+      edges: connectedEdges,
+    };
+  }, [nodes, edges, collectNodeWithSlotted]);
+
+  // Generate unique ID for edges
+  const generateEdgeId = useCallback(
+    () => `edge-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    []
+  );
+
+  // Paste nodes from clipboard with offset, updating slot references
+  const pasteNodes = useCallback(() => {
+    const { nodes: clipNodes, edges: clipEdges } = clipboardRef.current;
+    if (clipNodes.length === 0) {
+      return;
+    }
+
+    const offset = 50;
+
+    // Create ID mapping: old ID -> new ID
+    const idMap = new Map<string, string>();
+    for (const node of clipNodes) {
+      idMap.set(node.id, generateNodeId());
+    }
+
+    // Create new nodes with updated IDs and slot references
+    const newNodes = clipNodes.map((node) => ({
+      ...node,
+      id: idMap.get(node.id) ?? generateNodeId(),
+      position: { x: node.position.x + offset, y: node.position.y + offset },
+      selected: !slottedNodeIds.has(node.id), // Only select top-level nodes
+      data: {
+        ...node.data,
+        slots: node.data.slots?.map((slot) => ({
+          ...slot,
+          filledBy: slot.filledBy ? idMap.get(slot.filledBy) : undefined,
+        })),
+      },
+    }));
+
+    // Create new edges with updated source/target IDs
+    const newEdges = clipEdges.map((edge) => ({
+      ...edge,
+      id: generateEdgeId(),
+      source: idMap.get(edge.source) ?? edge.source,
+      target: idMap.get(edge.target) ?? edge.target,
+    }));
+
+    // Deselect existing nodes and add new ones
+    setNodes((nds) => [
+      ...nds.map((n) => ({ ...n, selected: false })),
+      ...newNodes,
+    ]);
+
+    // Add new edges
+    if (newEdges.length > 0) {
+      setEdges((eds) => [...eds, ...newEdges]);
+    }
+  }, [generateNodeId, generateEdgeId, slottedNodeIds]);
+
+  // Duplicate selected nodes (including slotted nodes)
+  const duplicateSelected = useCallback(() => {
+    const selected = nodes.filter((n) => n.selected);
+    if (selected.length === 0) {
+      return;
+    }
+
+    // Collect all node IDs including slotted nodes
+    const allIds = new Set<string>();
+    for (const node of selected) {
+      for (const id of collectNodeWithSlotted(node.id)) {
+        allIds.add(id);
+      }
+    }
+
+    const nodesToDuplicate = nodes.filter((n) => allIds.has(n.id));
+    const offset = 50;
+
+    // Create ID mapping: old ID -> new ID
+    const idMap = new Map<string, string>();
+    for (const node of nodesToDuplicate) {
+      idMap.set(node.id, generateNodeId());
+    }
+
+    // Create new nodes with updated IDs and slot references
+    const newNodes = nodesToDuplicate.map((node) => ({
+      ...node,
+      id: idMap.get(node.id) ?? generateNodeId(),
+      position: { x: node.position.x + offset, y: node.position.y + offset },
+      selected: !slottedNodeIds.has(node.id), // Only select top-level nodes
+      data: {
+        ...node.data,
+        slots: node.data.slots?.map((slot) => ({
+          ...slot,
+          filledBy: slot.filledBy ? idMap.get(slot.filledBy) : undefined,
+        })),
+      },
+    }));
+
+    // Deselect existing nodes and add duplicates
+    setNodes((nds) => [
+      ...nds.map((n) => ({ ...n, selected: false })),
+      ...newNodes,
+    ]);
+  }, [nodes, generateNodeId, collectNodeWithSlotted, slottedNodeIds]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const actions = {
+      deleteSelected,
+      copySelected,
+      copyWithConnections,
+      pasteNodes,
+      duplicateSelected,
+    };
+
+    const handler = createKeyboardHandler(actions);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [
+    deleteSelected,
+    copySelected,
+    copyWithConnections,
+    pasteNodes,
+    duplicateSelected,
+  ]);
 
   return (
     <PipelineContext.Provider value={contextValue}>
