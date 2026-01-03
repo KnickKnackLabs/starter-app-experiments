@@ -29,35 +29,34 @@ type NodeAppearanceStyles = {
 function getNodeAppearanceStyles(
   appearance: "default" | "sharp" | "minimal" | "borderless" = "minimal"
 ): NodeAppearanceStyles {
-  // Use muted background for subtle contrast against white/dark grid
-  // bg-muted is slightly off-white in light mode, slightly lighter in dark mode
+  // Use card background (white/dark) for contrast against muted grid
   // Selection uses a consistent thin primary/50 border across all variants
   switch (appearance) {
     case "sharp":
       // Sharp corners, thin border, subtle shadow
       return {
-        container: "rounded-sm border bg-muted shadow-sm",
+        container: "rounded-sm border bg-card shadow-sm",
         selected: "border-primary/50",
         unselected: "border-border",
       };
     case "minimal":
       // Square corners, thin border, no shadow
       return {
-        container: "rounded-none border bg-muted",
+        container: "rounded-none border bg-card",
         selected: "border-primary/50",
         unselected: "border-border",
       };
     case "borderless":
       // No border when unselected, thin border when selected
       return {
-        container: "rounded-md border bg-muted shadow-md",
+        container: "rounded-md border bg-card shadow-md",
         selected: "border-primary/50",
         unselected: "border-transparent",
       };
     default:
       // Original: rounded, thin border, medium shadow
       return {
-        container: "rounded-lg border bg-muted shadow-md",
+        container: "rounded-lg border bg-card shadow-md",
         selected: "border-primary/50",
         unselected: "border-border",
       };
@@ -154,8 +153,6 @@ function EmptySlot({
   parentNodeId: string;
 }) {
   const { dragState, registerSlotRef } = usePipelineContext();
-  const inputTypes = slot.accepts.inputs.map((p) => p.type).join(", ");
-  const outputTypes = slot.accepts.outputs.map((p) => p.type).join(", ");
 
   // Register this slot's DOM element for overlap detection
   const slotKey = `${parentNodeId}:${slot.id}`;
@@ -171,40 +168,26 @@ function EmptySlot({
   // Only show incompatible state when overlapping
   const showIncompatible = isOverlapping && !isCompatible;
 
-  let borderClass = "border-muted-foreground/30 border-dashed";
-  let bgClass = "bg-muted/20";
-  let hintText = "drag a node here";
+  let borderClass = "border-border border-dashed";
+  let labelClass = "text-muted-foreground/60";
 
   if (isCompatible && isOverlapping) {
-    borderClass = "border-primary border-solid";
-    bgClass = "bg-primary/10";
-    hintText = "drop here!";
+    borderClass = "border-primary/50";
+    labelClass = "text-primary";
   } else if (isCompatible) {
-    // Compatible but not overlapping yet - subtle highlight
-    borderClass = "border-primary/50 border-dashed";
-    bgClass = "bg-primary/5";
+    borderClass = "border-primary/30 border-dashed";
+    labelClass = "text-muted-foreground";
   } else if (showIncompatible) {
     borderClass = "border-destructive/50 border-dashed";
-    bgClass = "bg-destructive/5";
-    hintText = "incompatible";
+    labelClass = "text-destructive/70";
   }
 
   return (
     <div
-      className={`my-2 rounded border-2 ${borderClass} ${bgClass} p-3 transition-colors`}
+      className={`my-2 rounded-none border ${borderClass} px-3 py-2 transition-colors`}
       ref={(el) => registerSlotRef(parentNodeId, slot.id, el)}
     >
-      <div className="mb-1 text-center text-muted-foreground text-xs">
-        {slot.label}
-      </div>
-      <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/60">
-        <span>({inputTypes || "∅"})</span>
-        <span>→</span>
-        <span>({outputTypes || "∅"})</span>
-      </div>
-      <div className="mt-1 text-center text-[9px] text-muted-foreground/40">
-        {hintText}
-      </div>
+      <div className={`text-center text-xs ${labelClass}`}>{slot.label}</div>
     </div>
   );
 }
@@ -229,40 +212,12 @@ function FilledSlot({
 
   return (
     <button
-      className="group my-2 block w-full rounded border-2 border-primary/30 bg-primary/5 p-2 text-left"
+      className="my-2 block w-full rounded-none border border-border bg-card px-3 py-2 text-left transition-colors hover:border-primary/50"
       onDoubleClick={handleDoubleClick}
-      title="Double-click to remove"
+      title="Double-click to eject"
       type="button"
     >
-      <div className="rounded border border-border bg-card px-3 py-2 shadow-sm">
-        <div className="text-center font-medium text-xs">
-          {slottedNodeData.label}
-        </div>
-        <div className="mt-1 flex items-center justify-center gap-2">
-          {/* Mini port indicators */}
-          <div className="flex gap-1">
-            {slottedNodeData.inputs.map((p) => (
-              <div
-                className="h-2 w-2 rounded-full"
-                key={p.id}
-                style={{ backgroundColor: portTypeColors[p.type] }}
-                title={`${p.label}: ${p.type}`}
-              />
-            ))}
-          </div>
-          <span className="text-[10px] text-muted-foreground">→</span>
-          <div className="flex gap-1">
-            {slottedNodeData.outputs.map((p) => (
-              <div
-                className="h-2 w-2 rounded-full"
-                key={p.id}
-                style={{ backgroundColor: portTypeColors[p.type] }}
-                title={`${p.label}: ${p.type}`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      <div className="text-center text-xs">{slottedNodeData.label}</div>
     </button>
   );
 }

@@ -271,6 +271,7 @@ const nestedComposition: Node<BlackboxNodeData>[] = [
 export const NestedComposition: Story = {
   args: {
     initialNodes: nestedComposition,
+
     initialEdges: [
       {
         id: "e1",
@@ -287,6 +288,8 @@ export const NestedComposition: Story = {
         targetHandle: "numbers",
       },
     ],
+
+    nodeAppearance: "borderless"
   },
   parameters: {
     docs: {

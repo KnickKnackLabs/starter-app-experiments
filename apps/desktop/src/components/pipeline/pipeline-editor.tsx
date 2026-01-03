@@ -400,6 +400,7 @@ export function PipelineEditor({
       <ReactFlowProvider>
         <div className="h-full w-full">
           <ReactFlow
+            className="bg-muted"
             edges={edges}
             fitView
             fitViewOptions={{ maxZoom: defaultZoom }}
@@ -416,7 +417,7 @@ export function PipelineEditor({
             snapGrid={snapGrid}
             snapToGrid
           >
-            <Background gap={16} size={1} />
+            <Background className="!bg-muted" gap={16} size={1} />
             <Controls />
             <MiniMap />
           </ReactFlow>
