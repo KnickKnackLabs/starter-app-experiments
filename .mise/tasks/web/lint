@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Lint the web app"
+
+set -eo pipefail
+
+pnpm --filter web-app run lint
