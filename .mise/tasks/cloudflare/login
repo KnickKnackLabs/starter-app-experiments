@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Login to Cloudflare (interactive, browser-based)"
+
+set -eo pipefail
+
+wrangler login
+echo ""
+wrangler whoami

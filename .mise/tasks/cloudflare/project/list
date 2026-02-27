@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#MISE description="List Cloudflare Pages projects"
+
+set -eo pipefail
+
+ACCOUNT_ID=$(op item get "Cloudflare Global API Key" --vault Agents --fields account_id)
+
+RESPONSE_FILE=$(mktemp)
+trap 'rm -f "$RESPONSE_FILE"' EXIT
+
+mise run -q cloudflare:api -- "accounts/$ACCOUNT_ID/pages/projects" > "$RESPONSE_FILE"
+
+if [ "$(jq -r '.success' "$RESPONSE_FILE")" != "true" ]; then
+  echo "Error: Failed to list projects"
+  jq -r '.errors[]?.message // empty' "$RESPONSE_FILE"
+  exit 1
+fi
+
+COUNT=$(jq '.result | length' "$RESPONSE_FILE")
+
+if [ "$COUNT" -eq 0 ]; then
+  echo "No Cloudflare Pages projects found."
+  exit 0
+fi
+
+jq -r '.result[] | "  \(.name)\t\(.subdomain)\t\(.created_on[:10])"' "$RESPONSE_FILE" \
+  | sort \
+  | column -t -s $'\t'

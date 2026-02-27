@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#MISE description="Show current Cloudflare account info"
+
+set -eo pipefail
+
+TOKEN=$(mise run cloudflare:_token 2>/dev/null)
+
+RESPONSE=$(curl -s "https://api.cloudflare.com/client/v4/user" \
+  -H "Authorization: Bearer $TOKEN")
+
+SUCCESS=$(echo "$RESPONSE" | jq -r '.success')
+if [ "$SUCCESS" != "true" ]; then
+  echo "Error: API call failed. Run: mise run cloudflare:login"
+  echo "$RESPONSE" | jq -r '.errors[]?.message // empty'
+  exit 1
+fi
+
+EMAIL=$(echo "$RESPONSE" | jq -r '.result.email')
+echo "Logged in as: $EMAIL"
+
+# Get accounts
+ACCOUNTS=$(curl -s "https://api.cloudflare.com/client/v4/accounts" \
+  -H "Authorization: Bearer $TOKEN")
+
+echo ""
+echo "Accounts:"
+echo "$ACCOUNTS" | jq -r '.result[] | "  \(.name) (\(.id))"'

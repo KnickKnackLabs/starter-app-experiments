@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#MISE description="Get Cloudflare Global API Key and email from 1Password"
+#MISE hide=true
+#USAGE flag "--field <field>" help="Field to extract (credential, email, account_id)"
+
+set -eo pipefail
+
+FIELD="${usage_field:-credential}"
+ITEM="Cloudflare Global API Key"
+VAULT="Agents"
+
+VALUE=$(op item get "$ITEM" --vault "$VAULT" --fields "$FIELD" --reveal 2>/dev/null)
+
+if [ -z "$VALUE" ]; then
+  echo "Error: Could not read '$FIELD' from 1Password item '$ITEM' in vault '$VAULT'" >&2
+  exit 1
+fi
+
+echo "$VALUE"

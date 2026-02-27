@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+#MISE description="Create a scoped Cloudflare API token"
+#USAGE arg "[name]" help="Token name"
+#USAGE flag "--scopes <scopes>" help="Comma-separated permission names (e.g. 'Pages Write,DNS Read')"
+#USAGE flag "--ttl <ttl>" help="Token TTL in days (default: no expiry)"
+#USAGE flag "--list" help="List available permission names"
+
+set -eo pipefail
+
+NAME="${usage_name:-$1}"
+TTL="${usage_ttl:-}"
+LIST="${usage_list:-false}"
+
+# Fetch permission groups (needed for both --list and creation)
+GROUPS_FILE=$(mktemp)
+trap 'rm -f "$GROUPS_FILE"' EXIT
+mise run -q cloudflare:api -- user/tokens/permission_groups > "$GROUPS_FILE"
+
+if [ "$(jq -r '.success' "$GROUPS_FILE")" != "true" ]; then
+  echo "Error: Failed to fetch permission groups"
+  jq -r '.errors[]?.message // empty' "$GROUPS_FILE"
+  exit 1
+fi
+
+# List mode
+if [ "$LIST" = "true" ]; then
+  echo "Available permission names:"
+  echo ""
+  jq -r '.result[] | "  \(.name)"' "$GROUPS_FILE" | sort
+  exit 0
+fi
+
+SCOPES="${usage_scopes:-}"
+
+if [ -z "$NAME" ] || [ -z "$SCOPES" ]; then
+  echo "Usage: mise run cloudflare:token:create <name> --scopes 'Pages Write,DNS Read'"
+  echo ""
+  echo "Examples:"
+  echo "  mise run cloudflare:token:create my-token --scopes 'Pages Write'"
+  echo "  mise run cloudflare:token:create my-token --scopes 'Pages Write,DNS Read' --ttl 90"
+  echo "  mise run cloudflare:token:create --list"
+  exit 1
+fi
+
+ACCOUNT_ID=$(op item get "Cloudflare Global API Key" --vault Agents --fields account_id)
+
+# Resolve each scope to a permission group ID
+POLICIES="[]"
+RESOLVED=()
+IFS=',' read -ra SCOPE_LIST <<< "$SCOPES"
+for scope in "${SCOPE_LIST[@]}"; do
+  scope=$(echo "$scope" | xargs) # trim whitespace
+  PERM_ID=$(jq -r --arg name "$scope" '.result[] | select(.name == $name) | .id' "$GROUPS_FILE")
+
+  if [ -z "$PERM_ID" ]; then
+    # Try case-insensitive partial match
+    MATCHES=$(jq -r --arg name "$scope" '[.result[] | select(.name | test($name; "i")) | .name] | join(", ")' "$GROUPS_FILE")
+    if [ -n "$MATCHES" ]; then
+      echo "Error: No exact match for '$scope'. Did you mean: $MATCHES"
+    else
+      echo "Error: Unknown permission '$scope'. Use --list to see available names."
+    fi
+    exit 1
+  fi
+
+  POLICIES=$(echo "$POLICIES" | jq --arg id "$PERM_ID" --arg acct "$ACCOUNT_ID" \
+    '. + [{"effect": "allow", "resources": {"com.cloudflare.api.account.\($acct)": "*"}, "permission_groups": [{"id": $id}]}]')
+  RESOLVED+=("$scope")
+done
+
+# Build the token request
+TOKEN_BODY=$(jq -n \
+  --arg name "$NAME" \
+  --argjson policies "$POLICIES" \
+  '{name: $name, policies: $policies}')
+
+if [ -n "$TTL" ]; then
+  EXPIRES=$(date -u -v+"${TTL}d" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "+${TTL} days" +"%Y-%m-%dT%H:%M:%SZ")
+  TOKEN_BODY=$(echo "$TOKEN_BODY" | jq --arg exp "$EXPIRES" '. + {expires_on: $exp}')
+fi
+
+echo "Creating token '$NAME'"
+for s in "${RESOLVED[@]}"; do
+  echo "  + $s"
+done
+
+RESPONSE_FILE=$(mktemp)
+mise run -q cloudflare:api -- user/tokens -X POST -d "$TOKEN_BODY" > "$RESPONSE_FILE"
+
+if [ "$(jq -r '.success' "$RESPONSE_FILE")" != "true" ]; then
+  echo "Error: Failed to create token"
+  jq -r '.errors[]?.message // empty' "$RESPONSE_FILE"
+  rm -f "$RESPONSE_FILE"
+  exit 1
+fi
+
+TOKEN_VALUE=$(jq -r '.result.value' "$RESPONSE_FILE")
+TOKEN_ID=$(jq -r '.result.id' "$RESPONSE_FILE")
+rm -f "$RESPONSE_FILE"
+
+echo ""
+echo "Token created successfully!"
+echo "  ID: $TOKEN_ID"
+echo "  Name: $NAME"
+[ -n "$TTL" ] && echo "  Expires: $EXPIRES"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  Token: $TOKEN_VALUE"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "This token is only shown once. Store it securely."
