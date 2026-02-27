@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#MISE description="Deploy to Cloudflare Pages"
+#USAGE flag "--project <project>" help="Cloudflare Pages project name (default: from experiment.json)"
+#USAGE flag "--dir <dir>" help="Directory to deploy (default: apps/web/dist/client)"
+#USAGE flag "--build" help="Build before deploying"
+
+set -eo pipefail
+
+PROJECT="${usage_project:-}"
+DIR="${usage_dir:-apps/web/dist/client}"
+BUILD="${usage_build:-false}"
+
+# Infer project name from experiment.json if not provided
+if [ -z "$PROJECT" ] && [ -f experiment.json ]; then
+  PROJECT=$(jq -r '.name // empty' experiment.json)
+fi
+
+if [ -z "$PROJECT" ]; then
+  echo "Error: No project name. Use --project <name> or run from an experiment branch."
+  exit 1
+fi
+
+# Build if requested
+if [ "$BUILD" = "true" ]; then
+  echo "Building..."
+  pnpm build
+  echo ""
+fi
+
+# Check that the deploy directory exists
+if [ ! -d "$DIR" ]; then
+  echo "Error: Deploy directory '$DIR' does not exist. Run a build first (--build)."
+  exit 1
+fi
+
+echo "Deploying to Cloudflare Pages..."
+echo "  Project: $PROJECT"
+echo "  Directory: $DIR"
+echo ""
+
+wrangler pages deploy "$DIR" --project-name "$PROJECT"

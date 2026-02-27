@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#MISE description="Delete a Cloudflare Pages project"
+#USAGE arg "<name>" help="Project name to delete"
+
+set -eo pipefail
+
+NAME="${usage_name:-$1}"
+
+if [ -z "$NAME" ]; then
+  echo "Usage: mise run cloudflare:project:delete <name>"
+  echo ""
+  echo "Use 'mise run cloudflare:project:list' to see projects."
+  exit 1
+fi
+
+ACCOUNT_ID=$(op item get "Cloudflare Global API Key" --vault Agents --fields account_id)
+
+RESPONSE_FILE=$(mktemp)
+trap 'rm -f "$RESPONSE_FILE"' EXIT
+
+mise run -q cloudflare:api -- "accounts/$ACCOUNT_ID/pages/projects/$NAME" -X DELETE > "$RESPONSE_FILE"
+
+# DELETE returns null on success
+if [ -s "$RESPONSE_FILE" ] && [ "$(jq -r '.success // true' "$RESPONSE_FILE")" = "false" ]; then
+  echo "Error: Failed to delete project"
+  jq -r '.errors[]?.message // empty' "$RESPONSE_FILE"
+  exit 1
+fi
+
+echo "Project '$NAME' deleted."

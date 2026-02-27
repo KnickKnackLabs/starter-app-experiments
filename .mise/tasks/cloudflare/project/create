@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#MISE description="Create a Cloudflare Pages project"
+#USAGE arg "<name>" help="Project name"
+#USAGE flag "--production-branch <branch>" help="Production branch (default: main)"
+
+set -eo pipefail
+
+NAME="${usage_name:-$1}"
+PROD_BRANCH="${usage_production_branch:-main}"
+
+if [ -z "$NAME" ]; then
+  echo "Usage: mise run cloudflare:project:create <name>"
+  echo ""
+  echo "Examples:"
+  echo "  mise run cloudflare:project:create my-site"
+  echo "  mise run cloudflare:project:create my-site --production-branch production"
+  exit 1
+fi
+
+ACCOUNT_ID=$(op item get "Cloudflare Global API Key" --vault Agents --fields account_id)
+
+echo "Creating Cloudflare Pages project '$NAME'..."
+
+RESPONSE_FILE=$(mktemp)
+trap 'rm -f "$RESPONSE_FILE"' EXIT
+
+mise run -q cloudflare:api -- "accounts/$ACCOUNT_ID/pages/projects" \
+  -X POST \
+  -d "$(jq -n --arg name "$NAME" --arg branch "$PROD_BRANCH" \
+    '{name: $name, production_branch: $branch}')" \
+  > "$RESPONSE_FILE"
+
+if [ "$(jq -r '.success' "$RESPONSE_FILE")" != "true" ]; then
+  echo "Error: Failed to create project"
+  jq -r '.errors[]?.message // empty' "$RESPONSE_FILE"
+  exit 1
+fi
+
+SUBDOMAIN=$(jq -r '.result.subdomain' "$RESPONSE_FILE")
+
+echo ""
+echo "Project created!"
+echo "  Name: $NAME"
+echo "  URL: https://$SUBDOMAIN"
+echo "  Production branch: $PROD_BRANCH"

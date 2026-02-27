@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#MISE description="Get current Cloudflare auth token (auto-refreshes if expired)"
+#MISE hide=true
+
+set -eo pipefail
+
+RESULT=$(wrangler auth token --json 2>/dev/null)
+
+if [ -z "$RESULT" ]; then
+  echo "Error: No Cloudflare credentials found. Run: mise run cloudflare:login" >&2
+  exit 1
+fi
+
+TOKEN=$(echo "$RESULT" | jq -r '.token // empty')
+
+if [ -z "$TOKEN" ]; then
+  echo "Error: Could not extract token. Run: mise run cloudflare:login" >&2
+  exit 1
+fi
+
+echo "$TOKEN"
