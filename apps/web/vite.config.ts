@@ -15,6 +15,11 @@ export default defineConfig({
       router: {
         routesDirectory: "app",
       },
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+        autoSubfolderIndex: true,
+      },
     }),
     react(),
     tailwindcss(),

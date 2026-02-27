@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
+    "strict": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "paths": {
       "@core/*": ["./packages/core/src/*"]
     },
     "jsx": "react-jsx"
-  },
-  "extends": "expo/tsconfig.base"
+  }
 }
