@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Start Storybook for the web app"
+
+set -eo pipefail
+
+pnpm --filter web-app run storybook

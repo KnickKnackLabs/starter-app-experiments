@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#MISE description="Start the web dev server"
+#USAGE flag "--port <port>" help="Port number (default: 3000)"
+
+set -eo pipefail
+
+PORT="${usage_port:-3000}"
+
+echo "Starting dev server at http://localhost:$PORT"
+pnpm --filter web-app run dev -- --port "$PORT"
