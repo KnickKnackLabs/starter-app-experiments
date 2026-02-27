@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+#MISE description="Start a new experiment from a branch"
+#USAGE arg "<name>" help="Experiment name (URL-safe slug)"
+#USAGE flag "--from <from>" help="Branch to derive from (default: main)"
+#USAGE flag "--description <description>" help="Short description of the experiment"
+#USAGE flag "--force" help="Discard active experiment without archiving"
+
+set -eo pipefail
+
+NAME="${usage_name:-$1}"
+FROM="${usage_from:-main}"
+DESC="${usage_description:-}"
+FORCE="${usage_force:-false}"
+
+if [ -z "$NAME" ]; then
+  echo "Usage: mise run experiment:new <name> [--from <branch>] [--description '...']"
+  exit 1
+fi
+
+# Validate name is URL-safe
+if ! echo "$NAME" | grep -qE '^[a-z0-9][a-z0-9-]*[a-z0-9]$'; then
+  echo "Error: Name must be lowercase alphanumeric with hyphens (e.g., 'static-cloudflare-site')"
+  exit 1
+fi
+
+# Check if experiment branch already exists
+if git rev-parse --verify "experiment/$NAME" >/dev/null 2>&1; then
+  echo "Error: Branch experiment/$NAME already exists"
+  exit 1
+fi
+
+# Check if we're on an active experiment
+CURRENT_BRANCH=$(git branch --show-current)
+if [[ "$CURRENT_BRANCH" == experiment/* ]] && [ "$FORCE" != "true" ]; then
+  echo "Error: Currently on $CURRENT_BRANCH. Archive it first or use --force."
+  exit 1
+fi
+
+# Resolve the base branch
+if ! git rev-parse --verify "$FROM" >/dev/null 2>&1; then
+  echo "Error: Branch '$FROM' does not exist"
+  exit 1
+fi
+
+BASE_COMMIT=$(git rev-parse "$FROM")
+SHORT_SHA=$(echo "$BASE_COMMIT" | head -c 7)
+
+# Determine author
+AUTHOR="${AGENT:-$(git config user.name 2>/dev/null || echo 'unknown')}"
+
+# Create the experiment branch
+git checkout "$FROM" --quiet
+git checkout -b "experiment/$NAME" --quiet
+
+# Create manifest
+CREATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+jq -n \
+  --arg name "$NAME" \
+  --arg description "$DESC" \
+  --arg baseBranch "$FROM" \
+  --arg baseCommit "$BASE_COMMIT" \
+  --arg createdAt "$CREATED_AT" \
+  --arg author "$AUTHOR" \
+  '{
+    name: $name,
+    description: $description,
+    baseBranch: $baseBranch,
+    baseCommit: $baseCommit,
+    createdAt: $createdAt,
+    author: $author,
+    status: "active",
+    archivedAt: null,
+    tags: []
+  }' > experiment.json
+
+git add experiment.json
+git commit -m "experiment: start $NAME (based on $FROM@$SHORT_SHA)" --quiet
+
+echo "Started experiment/$NAME (based on $FROM@$SHORT_SHA)"
+[ -n "$DESC" ] && echo "  $DESC"
+echo ""
+echo "You're now on branch experiment/$NAME. Start building!"
+echo "When done: mise run experiment:archive"

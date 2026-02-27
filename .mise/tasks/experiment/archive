@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#MISE description="Archive the current experiment"
+#USAGE flag "--notes <notes>" help="Add notes/conclusions to the manifest"
+
+set -eo pipefail
+
+NOTES="${usage_notes:-}"
+
+# Must be on an experiment branch
+CURRENT_BRANCH=$(git branch --show-current)
+if [[ "$CURRENT_BRANCH" != experiment/* ]]; then
+  echo "Error: Not on an experiment branch (current: $CURRENT_BRANCH)"
+  echo "Switch to an experiment branch first."
+  exit 1
+fi
+
+NAME="${CURRENT_BRANCH#experiment/}"
+
+# Check for uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Error: You have uncommitted changes. Commit them first."
+  exit 1
+fi
+
+# Verify manifest exists
+if [ ! -f experiment.json ]; then
+  echo "Error: No experiment.json found on this branch"
+  exit 1
+fi
+
+# Check if tag already exists
+if git rev-parse --verify "archived/$NAME" >/dev/null 2>&1; then
+  echo "Error: Tag archived/$NAME already exists"
+  exit 1
+fi
+
+# Update manifest
+ARCHIVED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+TMP=$(mktemp)
+jq --arg archivedAt "$ARCHIVED_AT" --arg notes "$NOTES" \
+  '.status = "archived" | .archivedAt = $archivedAt | if $notes != "" then .notes = $notes else . end' \
+  experiment.json > "$TMP" && mv "$TMP" experiment.json
+
+git add experiment.json
+git commit -m "experiment: archive $NAME" --quiet
+
+# Tag the archived state
+git tag "archived/$NAME"
+
+echo "Archived experiment/$NAME"
+echo "  Tag: archived/$NAME"
+echo "  Branch experiment/$NAME is still available for further work."
+echo ""
+echo "To update the catalog on main: mise run experiment:catalog"

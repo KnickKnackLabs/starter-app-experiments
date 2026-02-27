@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+#MISE description="List all experiments"
+
+set -eo pipefail
+
+REPO_URL=$(git remote get-url origin | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|')
+
+# Active experiment
+CURRENT_BRANCH=$(git branch --show-current)
+if [[ "$CURRENT_BRANCH" == experiment/* ]]; then
+  echo "Active Experiment"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  NAME="${CURRENT_BRANCH#experiment/}"
+  if [ -f experiment.json ]; then
+    DESC=$(jq -r '.description // ""' experiment.json)
+    BASE=$(jq -r '.baseBranch // ""' experiment.json)
+    CREATED=$(jq -r '.createdAt // "" | split("T")[0]' experiment.json)
+    AUTHOR=$(jq -r '.author // ""' experiment.json)
+    printf "  %-30s %s  %s  %s\n" "$NAME" "$CREATED" "$(echo "$(jq -r '.baseCommit' experiment.json)" | head -c 7)" "$AUTHOR"
+    [ -n "$DESC" ] && echo "  $DESC"
+  else
+    echo "  $NAME (no manifest)"
+  fi
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+fi
+
+# Experiment branches (excluding current)
+BRANCHES=$(git branch -a --list 'experiment/*' 2>/dev/null | sed 's/^[* ]*//' | grep -v "^remotes/" || true)
+REMOTE_BRANCHES=$(git branch -a --list 'remotes/origin/experiment/*' 2>/dev/null | sed 's|^.*/origin/||' || true)
+ALL_BRANCHES=$(echo -e "$BRANCHES\n$REMOTE_BRANCHES" | sort -u | grep -v "^$" || true)
+
+# Archived tags
+TAGS=$(git tag -l 'archived/*' 2>/dev/null || true)
+
+if [ -z "$ALL_BRANCHES" ] && [ -z "$TAGS" ]; then
+  echo "No experiments yet. Run: mise run experiment:new <name>"
+  exit 0
+fi
+
+if [ -n "$ALL_BRANCHES" ]; then
+  echo "Experiment Branches"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  while IFS= read -r branch; do
+    [ -z "$branch" ] && continue
+    [[ "$branch" == "$CURRENT_BRANCH" ]] && continue
+    NAME="${branch#experiment/}"
+    # Try to read manifest from the branch
+    MANIFEST=$(git show "$branch:experiment.json" 2>/dev/null || echo "{}")
+    DESC=$(echo "$MANIFEST" | jq -r '.description // ""' 2>/dev/null || echo "")
+    CREATED=$(echo "$MANIFEST" | jq -r '.createdAt // "" | split("T")[0]' 2>/dev/null || echo "")
+    COMMIT=$(echo "$MANIFEST" | jq -r '.baseCommit // ""' 2>/dev/null | head -c 7)
+    AUTHOR=$(echo "$MANIFEST" | jq -r '.author // ""' 2>/dev/null || echo "")
+    STATUS=$(echo "$MANIFEST" | jq -r '.status // "active"' 2>/dev/null || echo "active")
+    printf "  %-30s %s  %s  %s  [%s]\n" "$NAME" "$CREATED" "$COMMIT" "$AUTHOR" "$STATUS"
+    [ -n "$DESC" ] && echo "  $DESC"
+  done <<< "$ALL_BRANCHES"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+fi
+
+if [ -n "$TAGS" ]; then
+  echo "Archived (tagged)"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  while IFS= read -r tag; do
+    [ -z "$tag" ] && continue
+    NAME="${tag#archived/}"
+    MANIFEST=$(git show "$tag:experiment.json" 2>/dev/null || echo "{}")
+    DESC=$(echo "$MANIFEST" | jq -r '.description // ""' 2>/dev/null || echo "")
+    CREATED=$(echo "$MANIFEST" | jq -r '.createdAt // "" | split("T")[0]' 2>/dev/null || echo "")
+    COMMIT=$(echo "$MANIFEST" | jq -r '.baseCommit // ""' 2>/dev/null | head -c 7)
+    AUTHOR=$(echo "$MANIFEST" | jq -r '.author // ""' 2>/dev/null || echo "")
+    printf "  %-30s %s  %s  %s\n" "$NAME" "$CREATED" "$COMMIT" "$AUTHOR"
+    [ -n "$DESC" ] && echo "  $DESC"
+    echo "  → $REPO_URL/tree/archived/$NAME"
+  done <<< "$TAGS"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi

@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+#MISE description="Combine multiple experiments into a project branch"
+#USAGE arg "<name>" help="Project name"
+#USAGE arg "<experiments...>" help="Experiment branches to merge (space-separated)" var=#true
+
+set -eo pipefail
+
+NAME="${usage_name:-$1}"
+shift 2>/dev/null || true
+EXPERIMENTS="${usage_experiments:-$*}"
+
+if [ -z "$NAME" ] || [ -z "$EXPERIMENTS" ]; then
+  echo "Usage: mise run experiment:combine <project-name> <experiment1> <experiment2> [...]"
+  echo ""
+  echo "Example: mise run experiment:combine ghl-website static-cloudflare-site auth-clerk tailwind-theme"
+  exit 1
+fi
+
+# Check if project branch already exists
+if git rev-parse --verify "project/$NAME" >/dev/null 2>&1; then
+  echo "Error: Branch project/$NAME already exists"
+  exit 1
+fi
+
+# Verify all experiment branches exist
+BRANCH_LIST=()
+for exp in $EXPERIMENTS; do
+  BRANCH="experiment/$exp"
+  if ! git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
+    echo "Error: Branch $BRANCH does not exist"
+    exit 1
+  fi
+  BRANCH_LIST+=("$BRANCH")
+done
+
+echo "Creating project/$NAME by combining:"
+for b in "${BRANCH_LIST[@]}"; do
+  echo "  + $b"
+done
+echo ""
+
+# Create project branch from main
+git checkout main --quiet
+git checkout -b "project/$NAME" --quiet
+
+# Merge each experiment
+MERGED=()
+for branch in "${BRANCH_LIST[@]}"; do
+  echo "Merging $branch..."
+  if git merge "$branch" --no-edit 2>&1; then
+    MERGED+=("${branch#experiment/}")
+    echo "  ✓ Merged"
+  else
+    echo ""
+    echo "Merge conflict while merging $branch."
+    echo "Resolve conflicts, then run: git merge --continue"
+    echo ""
+    echo "Remaining experiments to merge:"
+    for remaining in "${BRANCH_LIST[@]}"; do
+      ALREADY=false
+      for m in "${MERGED[@]}"; do
+        [[ "experiment/$m" == "$remaining" ]] && ALREADY=true
+      done
+      [[ "$remaining" == "$branch" ]] && continue
+      $ALREADY && continue
+      echo "  git merge $remaining"
+    done
+    exit 1
+  fi
+done
+
+# Create project manifest
+CREATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+AUTHOR="${AGENT:-$(git config user.name 2>/dev/null || echo 'unknown')}"
+EXPERIMENTS_JSON=$(printf '%s\n' "${MERGED[@]}" | jq -R . | jq -s .)
+
+jq -n \
+  --arg name "$NAME" \
+  --arg createdAt "$CREATED_AT" \
+  --arg author "$AUTHOR" \
+  --argjson experiments "$EXPERIMENTS_JSON" \
+  '{
+    name: $name,
+    type: "project",
+    experiments: $experiments,
+    createdAt: $createdAt,
+    author: $author
+  }' > project.json
+
+git add project.json
+git commit -m "project: create $NAME from ${MERGED[*]}" --quiet
+
+echo ""
+echo "Created project/$NAME"
+echo "  Combined: ${MERGED[*]}"
+echo "  Branch: project/$NAME"

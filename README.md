@@ -1,53 +1,41 @@
-# Starter
+# starter-app-experiments
 
-A monorepo starter with:
+Experiment lab for [starter-app](https://github.com/KnickKnackLabs/starter-app). Each experiment is a branch that builds on starter-app, proving out patterns, integrations, and deployment strategies.
 
-- **Web**: TanStack Start + Tailwind CSS v4
-- **Mobile**: Expo + NativeWind + React Native Reusables
-- **Desktop**: Electron + Electron Forge + Vite
-- **Storybook**: Component development for web, native, and desktop
-- **i18n**: Full internationalization with 5 languages and RTL support
+## How It Works
 
-## Getting Started
+- `main` tracks upstream starter-app
+- Each experiment lives on an `experiment/<name>` branch
+- Experiments can derive from other experiments (branch off a branch)
+- Completed experiments get tagged `archived/<name>`
+- Multiple experiments can be combined into `project/<name>` branches via merge
 
-```sh
-pnpm install
-```
-
-### Development
+## Quick Start
 
 ```sh
-pnpm web              # TanStack Start dev server (http://localhost:3000)
-pnpm web:storybook    # Web Storybook (http://localhost:6006)
-pnpm native           # Expo dev server
-pnpm native:storybook # Native Storybook (on-device)
-pnpm desktop          # Electron desktop app
-pnpm desktop:storybook # Desktop Storybook (http://localhost:6007)
+# Start a new experiment
+mise run experiment:new static-cloudflare-site --description "Deploy as static site to Cloudflare Pages"
+
+# List all experiments
+mise run experiment:list
+
+# Archive when done
+mise run experiment:archive
+
+# Combine experiments into a project
+mise run experiment:combine my-project static-cloudflare-site auth-clerk
 ```
 
-### Code Quality
+## Catalog
+
+See [experiments/README.md](experiments/README.md) for the full catalog of experiments.
+
+## Syncing with upstream
 
 ```sh
-pnpm lint             # Check for lint/format issues
-pnpm lint:fix         # Auto-fix lint/format issues
-pnpm typecheck        # TypeScript type checking
-pnpm check            # Run all checks (lint + typecheck)
+mise run experiment:sync   # Pull latest from starter-app into main
 ```
 
-## Structure
+## Upstream
 
-```
-apps/
-  desktop/      # Electron desktop app (Electron Forge + Vite)
-  expo/         # React Native app (Expo Router)
-  web/          # Web app (TanStack Start)
-
-packages/
-  core/         # Shared types, schemas, and i18n
-  ui-web/       # Shared web components (Shadcn/Tailwind)
-```
-
-## Documentation
-
-- [Electron Desktop App](docs/electron.md) - Adding Electron to a pnpm monorepo
-- [Internationalization (i18n)](docs/i18n.md) - Adding translations, RTL support, and localization
+This repo is a fork of [KnickKnackLabs/starter-app](https://github.com/KnickKnackLabs/starter-app) — a monorepo with TanStack Start (web), Expo (mobile), Electron (desktop), and shared packages.

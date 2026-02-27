@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#MISE description="Sync main with upstream starter-app"
+
+set -eo pipefail
+
+CURRENT=$(git branch --show-current)
+
+# Switch to main if not already there
+if [ "$CURRENT" != "main" ]; then
+  echo "Switching to main..."
+  git stash --quiet 2>/dev/null || true
+  git checkout main --quiet
+  SWITCHED=true
+fi
+
+echo "Fetching upstream (starter-app)..."
+git fetch upstream
+
+BEHIND=$(git rev-list --count HEAD..upstream/main)
+if [ "$BEHIND" -eq 0 ]; then
+  echo "Already up to date with upstream."
+else
+  echo "Merging $BEHIND commits from upstream/main..."
+  git merge upstream/main --no-edit
+  echo "✓ Synced with upstream starter-app"
+fi
+
+# Switch back if needed
+if [ "${SWITCHED:-false}" = "true" ]; then
+  git checkout "$CURRENT" --quiet
+  git stash pop --quiet 2>/dev/null || true
+  echo "Switched back to $CURRENT"
+fi
