@@ -1,0 +1,11 @@
+{
+  "name": "static-cloudflare-site",
+  "description": "Strip to web-only and deploy as static site to Cloudflare Pages",
+  "baseBranch": "main",
+  "baseCommit": "91e6c9e8685b2ce90d1e12ab2c65952ef922ab85",
+  "createdAt": "2026-02-27T03:26:01Z",
+  "author": "c0da",
+  "status": "active",
+  "archivedAt": null,
+  "tags": []
+}
