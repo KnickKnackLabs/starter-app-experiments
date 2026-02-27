@@ -1,41 +1,40 @@
-# starter-app-experiments
+# Experiment: static-cloudflare-site
 
-Experiment lab for [starter-app](https://github.com/KnickKnackLabs/starter-app). Each experiment is a branch that builds on starter-app, proving out patterns, integrations, and deployment strategies.
+Strip the starter-app monorepo to web-only and deploy as a statically-prerendered site to Cloudflare Pages.
 
-## How It Works
+## What This Proves
 
-- `main` tracks upstream starter-app
-- Each experiment lives on an `experiment/<name>` branch
-- Experiments can derive from other experiments (branch off a branch)
-- Completed experiments get tagged `archived/<name>`
-- Multiple experiments can be combined into `project/<name>` branches via merge
+- TanStack Start can do full static prerendering (`crawlLinks: true`)
+- Stripping mobile (Expo) and desktop (Electron) apps from the monorepo works cleanly
+- The result deploys to Cloudflare Pages via `wrangler pages deploy`
+- Merges `tooling/cloudflare` for reusable Cloudflare tasks (API, deploy, token management, project management)
 
-## Quick Start
+## What Changed from Starter
 
-```sh
-# Start a new experiment
-mise run experiment:new static-cloudflare-site --description "Deploy as static site to Cloudflare Pages"
+- Removed `apps/expo/` and `apps/desktop/`
+- Root `tsconfig.json` — standalone config (no longer extends expo)
+- `apps/web/vite.config.ts` — added `prerender: { enabled: true, crawlLinks: true, autoSubfolderIndex: true }`
+- `apps/web/wrangler.toml` — Cloudflare Pages config (`pages_build_output_dir = "dist/client"`)
+- `package.json` — web-only scripts
+- `.gitignore` — added `dist/`
 
-# List all experiments
-mise run experiment:list
-
-# Archive when done
-mise run experiment:archive
-
-# Combine experiments into a project
-mise run experiment:combine my-project static-cloudflare-site auth-clerk
-```
-
-## Catalog
-
-See [experiments/README.md](experiments/README.md) for the full catalog of experiments.
-
-## Syncing with upstream
+## Usage
 
 ```sh
-mise run experiment:sync   # Pull latest from starter-app into main
+pnpm install
+pnpm build          # Builds + prerenders all pages
+mise run cloudflare:deploy -- --build   # Build and deploy to Cloudflare Pages
 ```
 
-## Upstream
+## Tooling (from `tooling/cloudflare`)
 
-This repo is a fork of [KnickKnackLabs/starter-app](https://github.com/KnickKnackLabs/starter-app) — a monorepo with TanStack Start (web), Expo (mobile), Electron (desktop), and shared packages.
+```sh
+mise run cloudflare:project:create <name>   # Create a Pages project
+mise run cloudflare:project:list            # List Pages projects
+mise run cloudflare:deploy -- --build       # Build and deploy
+mise run cloudflare:token:create <name> --scopes 'Pages Write' --ttl 90
+```
+
+---
+
+*This is an experiment branch of [starter-app-experiments](https://github.com/KnickKnackLabs/starter-app-experiments). See `experiment.json` for metadata.*
